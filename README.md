@@ -20,7 +20,7 @@
 
 ```bash
 git clone https://github.com/dexarmet13/project_pygame.git
-cd your_game_repository
+cd project_pygame
 pip install -r requirements.txt
 ```
 
