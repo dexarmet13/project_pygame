@@ -27,7 +27,7 @@ pip install -r requirements.txt
 ## Как Играть
 Для запуска игры выполните следующую команду:
 
-- `python main.py`\
+- `python main.py`
 
 Либо же
 
