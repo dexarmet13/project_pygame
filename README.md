@@ -19,7 +19,7 @@
 Чтобы начать работу, клонируйте репозиторий и установите необходимые зависимости:
 
 ```bash
-git clone https://github.com/your_username/your_game_repository.git
+git clone https://github.com/dexarmet13/project_pygame.git
 cd your_game_repository
 pip install -r requirements.txt
 ```
