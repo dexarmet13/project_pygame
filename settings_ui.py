@@ -85,10 +85,10 @@ class SettingsUI(QWidget):
         self.set_lables_style(label)
         self.main_layout.addWidget(label, 6, 0, 1, 1)
 
-        vert_sync_on_button = QPushButton("Вкл")
+        vert_sync_on_button = QPushButton("Включить")
         self.create_button(vert_sync_on_button, 6, 1)
 
-        vert_sync_off_button = QPushButton("Выкл")
+        vert_sync_off_button = QPushButton("Выключить")
         self.create_button(vert_sync_off_button, 6, 2)
 
         self.back_button = QPushButton("Назад")
@@ -100,9 +100,10 @@ class SettingsUI(QWidget):
         self.set_button_stylesheet(self.accept_button)
         self.main_layout.addWidget(self.accept_button, 7, 1, 1, 1)
 
-        self.reset = QPushButton("Сбросить")
-        self.set_button_stylesheet(self.reset)
-        self.main_layout.addWidget(self.reset, 7, 2, 1, 1)
+        self.reset_button = QPushButton("Сбросить")
+        self.reset_button.clicked.connect(self.reset_settings)
+        self.set_button_stylesheet(self.reset_button)
+        self.main_layout.addWidget(self.reset_button, 7, 2, 1, 1)
 
         for i in range(self.main_layout.columnCount()):
             self.main_layout.setColumnStretch(i, 0)
@@ -165,7 +166,7 @@ class SettingsUI(QWidget):
     @staticmethod
     def set_button_color(button, color):
         palette = button.palette()
-        palette.setColor(QPalette.Button, QColor(f"{color}"))
+        palette.setColor(QPalette.Button, QColor(color))
 
         button.setPalette(palette)
         button.setAutoFillBackground(True)
@@ -178,33 +179,57 @@ class SettingsUI(QWidget):
     def get_button_statement(self, button, y):
         for column in range(self.main_layout.columnCount()):
             item = self.main_layout.itemAtPosition(y, column)
-            if item is not None:
-                widget = item.widget()
-                if column:
-                    current_color = (
-                        widget.palette().color(QPalette.Button).name()
-                    )
-                    if current_color == "#008000":
-                        self.set_button_color(widget, "white")
+            widget = item.widget()
+            if column:
+                current_color = widget.palette().color(QPalette.Button).name()
+                if current_color == "#008000":
+                    self.set_button_color(widget, "white")
         self.set_button_color(button, "green")
 
     def accept_settings(self):
         for row in range(self.main_layout.rowCount()):
             for column in range(self.main_layout.columnCount()):
                 item = self.main_layout.itemAtPosition(row, column)
-                widget = item.widget()
-                if column == 0:
-                    key = widget.text()
-                elif isinstance(widget, QSlider):
-                    self._dict_settings[key] = widget.value()
-                elif isinstance(widget, QPushButton):
-                    current_color = (
-                        widget.palette().color(QPalette.Button).name()
-                    )
-                    if current_color == "#008000":
-                        self._dict_settings[key] = widget.text()
-                else:
-                    self._dict_settings[key] = widget.currentText()
+                if item is not None:
+                    widget = item.widget()
+                    if column == 0:
+                        key = widget.text()
+                    elif isinstance(widget, QSlider):
+                        self._dict_settings[key] = widget.value()
+                    elif isinstance(widget, QPushButton):
+                        current_color = (
+                            widget.palette().color(QPalette.Button).name()
+                        )
+                        if current_color == "#008000":
+                            if row == 6:
+                                self._dict_settings[key] = (
+                                    widget.text() == "Включить"
+                                )
+                            else:
+                                self._dict_settings[key] = widget.text()
+                    elif isinstance(widget, QComboBox):
+                        if row == 2:
+                            values = widget.currentText().split("*")
+                            self._dict_settings[key] = (
+                                int(values[0]),
+                                int(values[1]),
+                            )
+                        elif row == 5:
+                            text = widget.currentText()
+                            self._dict_settings[key] = (
+                                None
+                                if text == "Без ограничений"
+                                else int(text[-2:])
+                            )
+                        else:
+                            self._dict_settings[key] = widget.currentText()
+
+        if len(self._dict_settings) < self.main_layout.rowCount() - 1:
+            QMessageBox.critical(
+                self, "Ошибка", "Все настройки должны быть заполнены"
+            )
+            return False
+
         self.create_json_file()
 
     def create_json_file(self):
@@ -219,35 +244,61 @@ class SettingsUI(QWidget):
             )
         QMessageBox.information(self, "Готово", "Настройки сохранены")
 
-    def default_settings(self):
+    def reset_settings(self):
         dict_settings = {
             "Громкость звука": 50,
-            "Уровень сложности": "Легкий",
-            "Разрешение экрана": (1920, 1080),
+            "Уровень сложности": "Средний",
+            "Разрешение экрана": [2560, 1440],
             "Качество текстур": "Среднее",
-            "Ограничение по FPS": "Без ограничений",
-            "Вертикальная синхронизация": True,
+            "Режим отображения": "Оконный",
+            "Ограничение по FPS": 60,
+            "Вертикальная синхронизация": False,
         }
         self.set_settings(dict_settings)
 
     def set_settings(
         self, dict_settings=json.load(open("user_data/settings.json", "r"))
     ):
+        print(dict_settings)
         self._dict_settings = dict_settings
-
-        # for row in range(self.main_layout.rowCount()):
-        #     for column in range(self.main_layout.columnCount()):
-        #         item = self.main_layout.itemAtPosition(row, column)
-        #         widget = item.widget()
-        #         if column == 0:
-        #             key = widget.text()
-        #         elif isinstance(widget, QSlider):
-        #             self._dict_settings[key] = widget.value()
-        #         elif isinstance(widget, QPushButton):
-        #             current_color = (
-        #                 widget.palette().color(QPalette.Button).name()
-        #             )
-        #             if current_color == "#008000":
-        #                 self._dict_settings[key] = widget.text()
-        #         else:
-        #             self._dict_settings[key] = widget.currentText()
+        for row in range(self.main_layout.rowCount()):
+            for column in range(self.main_layout.columnCount()):
+                item = self.main_layout.itemAtPosition(row, column)
+                widget = item.widget()
+                if row == self.main_layout.rowCount() - 1:
+                    continue
+                if column == 0:
+                    key = widget.text()
+                elif isinstance(widget, QSlider):
+                    widget.setValue(self._dict_settings[key])
+                elif isinstance(widget, QPushButton):
+                    if row == 6:
+                        if (
+                            widget.text() == "Включить"
+                            and self._dict_settings[key]
+                        ) or (
+                            widget.text() == "Выключить"
+                            and not self._dict_settings[key]
+                        ):
+                            self.set_button_color(widget, "green")
+                        else:
+                            self.set_button_color(widget, "white")
+                    elif widget.text() == self._dict_settings[key]:
+                        self.set_button_color(widget, "green")
+                    else:
+                        self.set_button_color(widget, "white")
+                else:
+                    if row == 2:
+                        widget.setCurrentText(
+                            f"{self._dict_settings[key][0]}*{self._dict_settings[key][1]}"
+                        )
+                        print(self._dict_settings[key])
+                    elif row == 5:
+                        if self._dict_settings[key] is None:
+                            widget.setCurrentText("Без ограничений")
+                        else:
+                            widget.setCurrentText(
+                                f"Ограничение {self._dict_settings[key]}"
+                            )
+                    else:
+                        widget.setCurrentText(self._dict_settings[key])
