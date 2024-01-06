@@ -44,9 +44,7 @@ class SettingsUI(QWidget):
         self.main_layout.addWidget(label, 2, 0, 1, 1)
 
         self.game_resolution_combo_box = QComboBox()
-        self.game_resolution_combo_box.addItems([
-            "2560*1440", "1920*1080", "1280*720"
-        ])
+        self.game_resolution_combo_box.addItems(["2560*1440", "1920*1080", "1280*720"])
         self.main_layout.addWidget(self.game_resolution_combo_box, 2, 1, 1, 2)
 
         label = QLabel("Качество текстур")
@@ -133,8 +131,7 @@ class SettingsUI(QWidget):
             QMessageBox.critical(
                 self,
                 "Ошибка при установке шрифта",
-                "Данный шрифт некорректен. Шрифт по умолчанию:"
-                f" {font_info.family()}",
+                f"Данный шрифт некорректен. Шрифт по умолчанию: {font_info.family()}",
             )
 
     @property
@@ -173,9 +170,7 @@ class SettingsUI(QWidget):
             if item is not None:
                 widget = item.widget()
                 if column:
-                    current_color = (
-                        widget.palette().color(QPalette.Button).name()
-                    )
+                    current_color = widget.palette().color(QPalette.Button).name()
                     if current_color == "#008000":
                         self.set_button_color(widget, "white")
         self.set_button_color(button, "green")
@@ -190,9 +185,7 @@ class SettingsUI(QWidget):
                 elif isinstance(widget, QSlider):
                     self._dict_settings[key] = widget.value()
                 elif isinstance(widget, QPushButton):
-                    current_color = (
-                        widget.palette().color(QPalette.Button).name()
-                    )
+                    current_color = widget.palette().color(QPalette.Button).name()
                     if current_color == "#008000":
                         self._dict_settings[key] = widget.text()
                 else:
@@ -206,7 +199,5 @@ class SettingsUI(QWidget):
         directory.mkdir(parents=True, exist_ok=True)
 
         with file_path.open("w", encoding="utf-8") as json_file:
-            json.dump(
-                self._dict_settings, json_file, ensure_ascii=False, indent=4
-            )
+            json.dump(self._dict_settings, json_file, ensure_ascii=False, indent=4)
         QMessageBox.information(self, "Готово", "Настройки сохранены")
