@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from PyQt5.QtGui import QFont, QFontInfo, QPalette, QColor
 from PyQt5.QtWidgets import (
     QWidget,
@@ -17,6 +19,8 @@ class SettingsUI(QWidget):
         self._font = QFont()
         self._font.setPointSize(20)
 
+        self._dict_settings = {}
+
         super().__init__()
         self.initUI()
 
@@ -25,27 +29,25 @@ class SettingsUI(QWidget):
         self.frame.move(104, 140)
         self.frame.resize(1066, 595)
 
-        self.main_layout = QGridLayout(self)
+        self.main_layout = QGridLayout(self.frame)
 
-        label = QLabel("Сложность")
+        label = QLabel("Уровень сложности")
         self.set_lables_style(label)
         self.main_layout.addWidget(label, 1, 0, 1, 1)
 
         self.dificulty_combo_box = QComboBox()
-        self.dificulty_combo_box.addItems(["Легкий", "Средний", "Тяжкий"])
+        self.dificulty_combo_box.addItems(["Легкий", "Средний", "Тяжелый"])
         self.main_layout.addWidget(self.dificulty_combo_box, 1, 1, 1, 2)
 
-        label = QLabel("Разрешение")
+        label = QLabel("Разрешение экрана")
         self.set_lables_style(label)
         self.main_layout.addWidget(label, 2, 0, 1, 1)
 
         self.game_resolution_combo_box = QComboBox()
-        self.game_resolution_combo_box.addItems([
-            "2560*1440", "1920*1080", "1280*720"
-        ])
+        self.game_resolution_combo_box.addItems(["2560*1440", "1920*1080", "1280*720"])
         self.main_layout.addWidget(self.game_resolution_combo_box, 2, 1, 1, 2)
 
-        label = QLabel("Качество")
+        label = QLabel("Качество текстур")
         self.set_lables_style(label)
         self.main_layout.addWidget(label, 3, 0, 1, 1)
 
@@ -53,7 +55,7 @@ class SettingsUI(QWidget):
         self.quality_level_combo_box.addItems(["Низкое", "Среднее", "Высокое"])
         self.main_layout.addWidget(self.quality_level_combo_box, 3, 1, 1, 2)
 
-        label = QLabel("Режим")
+        label = QLabel("Режим отображения")
         self.set_lables_style(label)
         self.main_layout.addWidget(label, 4, 0, 1, 1)
 
@@ -63,7 +65,7 @@ class SettingsUI(QWidget):
         fullscreen_mode_button = QPushButton("Полноэкранный")
         self.create_button(fullscreen_mode_button, 4, 2)
 
-        label = QLabel("Ограничение FPS")
+        label = QLabel("Ограничение по FPS")
         self.set_lables_style(label)
         self.main_layout.addWidget(label, 5, 0, 1, 1)
 
@@ -73,7 +75,7 @@ class SettingsUI(QWidget):
         ])
         self.main_layout.addWidget(self.fps_limit_combo_box, 5, 1, 1, 2)
 
-        label = QLabel("Верт")
+        label = QLabel("Вертикальная синхронизация")
         self.set_lables_style(label)
         self.main_layout.addWidget(label, 6, 0, 1, 1)
 
@@ -88,6 +90,7 @@ class SettingsUI(QWidget):
         self.main_layout.addWidget(self.back_button, 7, 0, 1, 1)
 
         self.accept_button = QPushButton("Применить")
+        self.accept_button.clicked.connect(self.accept_settings)
         self.set_button_stylesheet(self.accept_button)
         self.main_layout.addWidget(self.accept_button, 7, 1, 1, 1)
 
@@ -98,7 +101,7 @@ class SettingsUI(QWidget):
         for i in range(self.main_layout.columnCount()):
             self.main_layout.setColumnStretch(i, 0)
 
-        self.volume_label = QLabel("Громкость")
+        self.volume_label = QLabel("Громкость звука")
         self.set_lables_style(self.volume_label)
         self.main_layout.addWidget(self.volume_label, 0, 0, 1, 1)
 
@@ -128,9 +131,16 @@ class SettingsUI(QWidget):
             QMessageBox.critical(
                 self,
                 "Ошибка при установке шрифта",
-                "Данный шрифт некорректен. Шрифт по умолчанию:"
-                f" {font_info.family()}",
+                f"Данный шрифт некорректен. Шрифт по умолчанию: {font_info.family()}",
             )
+
+    @property
+    def dict_settings(self):
+        return self._dict_settings
+
+    @dict_settings.setter
+    def dict_settings(self, dict_settings):
+        self._dict_settings = dict_settings
 
     def set_lables_style(self, label):
         label.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
@@ -141,17 +151,8 @@ class SettingsUI(QWidget):
         button.setStyleSheet("color: black;")
         button.setFont(self._font)
 
-    def get_button_statement(self, button, y):
-        for column in range(self.main_layout.columnCount()):
-            item = self.main_layout.itemAtPosition(y, column)
-            if item is not None:
-                widget = item.widget()
-                current_color = widget.palette().color(QPalette.Button).name()
-                if current_color == "#008000":
-                    self.set_button_color(widget, "white")
-        self.set_button_color(button, "green")
-
-    def set_button_color(self, button, color):
+    @staticmethod
+    def set_button_color(button, color):
         palette = button.palette()
         palette.setColor(QPalette.Button, QColor(f"{color}"))
 
@@ -162,3 +163,41 @@ class SettingsUI(QWidget):
         button.clicked.connect(lambda: self.get_button_statement(button, y))
         self.set_button_stylesheet(button)
         self.main_layout.addWidget(button, y, x, 1, 1)
+
+    def get_button_statement(self, button, y):
+        for column in range(self.main_layout.columnCount()):
+            item = self.main_layout.itemAtPosition(y, column)
+            if item is not None:
+                widget = item.widget()
+                if column:
+                    current_color = widget.palette().color(QPalette.Button).name()
+                    if current_color == "#008000":
+                        self.set_button_color(widget, "white")
+        self.set_button_color(button, "green")
+
+    def accept_settings(self):
+        for row in range(self.main_layout.rowCount()):
+            for column in range(self.main_layout.columnCount()):
+                item = self.main_layout.itemAtPosition(row, column)
+                widget = item.widget()
+                if column == 0:
+                    key = widget.text()
+                elif isinstance(widget, QSlider):
+                    self._dict_settings[key] = widget.value()
+                elif isinstance(widget, QPushButton):
+                    current_color = widget.palette().color(QPalette.Button).name()
+                    if current_color == "#008000":
+                        self._dict_settings[key] = widget.text()
+                else:
+                    self._dict_settings[key] = widget.currentText()
+        self.create_json_file()
+
+    def create_json_file(self):
+        directory = Path("user_data")
+        file_path = directory / "settings.json"
+
+        directory.mkdir(parents=True, exist_ok=True)
+
+        with file_path.open("w", encoding="utf-8") as json_file:
+            json.dump(self._dict_settings, json_file, ensure_ascii=False, indent=4)
+        QMessageBox.information(self, "Готово", "Настройки сохранены")

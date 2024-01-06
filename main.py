@@ -28,14 +28,16 @@ class MainWindow(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle("Welcome Window")
+        self.set_background_pixmap("main_window_background")
         self.resize_window("main_window_background")
+
         self.center()
 
         self.main_stacked_widget = QStackedWidget()
-        self.set_background_pixmap("main_window_background")
         self.setCentralWidget(self.main_stacked_widget)
 
         self.welcome_window = WelcomeWindowUI()
+        self.settings_window = SettingsUI()
 
         self.welcome_window.settings_button.clicked.connect(self.settings)
         self.set_button_stylesheet(
@@ -51,7 +53,6 @@ class MainWindow(QMainWindow):
         self.main_stacked_widget.addWidget(self.welcome_window)
         self.main_stacked_widget.setCurrentWidget(self.welcome_window)
 
-        self.settings_window = SettingsUI()
         self.settings_window.back_button.clicked.connect(self.go_back)
 
         self.main_stacked_widget.addWidget(self.settings_window)
@@ -65,25 +66,52 @@ class MainWindow(QMainWindow):
     def set_background_pixmap(self, image_key):
         pixmap = self._images.get(image_key)
         if pixmap:
+            screen = QApplication.primaryScreen()
+            screen_size = screen.size()
+            pixmap_size = pixmap.size()
+            print("Герман бяка", screen_size, pixmap_size)
+            if (
+                pixmap_size.width() > screen_size.width()
+                or pixmap_size.height() > screen_size.height()
+            ):
+                pixmap = pixmap.scaled(
+                    screen_size.width(),
+                    screen_size.height(),
+                    QtCore.Qt.KeepAspectRatio,
+                )
+
             palette = self.palette()
             palette.setBrush(self.backgroundRole(), QBrush(pixmap))
             self.setPalette(palette)
         else:
             print(f"Image key not found: {image_key}")
 
-    @staticmethod
-    def set_button_stylesheet(button, image_path):
+    def set_button_stylesheet(self, button, image_path):
         button.setFixedSize(QSize(190, 126))
-        button.setStyleSheet(f"""border-image: url("{image_path}");""")
+        button.setFont(self.settings_window.font)
+        button.setStyleSheet(
+            f"""border-image: url("{image_path}"); color: white;"""
+        )
+        print(
+            "dfasfjhdsklfjdsahfgljkdsahlkgjfdhsalkjfhdsajklfhkjldsahfkjdsahljkfdhsaljkfhdsjkafhdklajshfjksadhfjkdsahflkjdsahlfdsajkl"
+        )
 
     def resize_window(self, image_key):
         pixmap = self._images.get(image_key)
         if pixmap:
-            self.resize(pixmap.width(), pixmap.height())
+            screen = QApplication.primaryScreen()
+            screen_size = screen.size()
+            pixmap_size = pixmap.size()
+            if (
+                pixmap_size.width() > screen_size.width()
+                or pixmap_size.height() > screen_size.height()
+            ):
+                self.resize(screen_size.width(), screen_size.height())
+            else:
+                self.resize(pixmap_size.width(), pixmap_size.height())
             return True
-        else:
-            print(f"Image key not found: {image_key}")
-            return False
+        print(f"Image key not found: {image_key}")
+        return False
 
     def settings(self):
         self.set_background_pixmap("settings_window_background")
