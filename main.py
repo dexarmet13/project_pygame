@@ -69,7 +69,6 @@ class MainWindow(QMainWindow):
             screen = QApplication.primaryScreen()
             screen_size = screen.size()
             pixmap_size = pixmap.size()
-            print("Герман бяка", screen_size, pixmap_size)
             if (
                 pixmap_size.width() > screen_size.width()
                 or pixmap_size.height() > screen_size.height()
@@ -91,9 +90,6 @@ class MainWindow(QMainWindow):
         button.setFont(self.settings_window.font)
         button.setStyleSheet(
             f"""border-image: url("{image_path}"); color: white;"""
-        )
-        print(
-            "dfasfjhdsklfjdsahfgljkdsahlkgjfdhsalkjfhdsajklfhkjldsahfkjdsahljkfdhsaljkfhdsjkafhdklajshfjksadhfjkdsahflkjdsahlfdsajkl"
         )
 
     def resize_window(self, image_key):

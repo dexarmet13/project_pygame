@@ -36,6 +36,7 @@ class SettingsUI(QWidget):
         self.main_layout.addWidget(label, 1, 0, 1, 1)
 
         self.dificulty_combo_box = QComboBox()
+        self.set_combo_box_stylesheet(self.dificulty_combo_box)
         self.dificulty_combo_box.addItems(["Легкий", "Средний", "Тяжелый"])
         self.main_layout.addWidget(self.dificulty_combo_box, 1, 1, 1, 2)
 
@@ -44,7 +45,10 @@ class SettingsUI(QWidget):
         self.main_layout.addWidget(label, 2, 0, 1, 1)
 
         self.game_resolution_combo_box = QComboBox()
-        self.game_resolution_combo_box.addItems(["2560*1440", "1920*1080", "1280*720"])
+        self.set_combo_box_stylesheet(self.game_resolution_combo_box)
+        self.game_resolution_combo_box.addItems([
+            "2560*1440", "1920*1080", "1280*720"
+        ])
         self.main_layout.addWidget(self.game_resolution_combo_box, 2, 1, 1, 2)
 
         label = QLabel("Качество текстур")
@@ -52,6 +56,7 @@ class SettingsUI(QWidget):
         self.main_layout.addWidget(label, 3, 0, 1, 1)
 
         self.quality_level_combo_box = QComboBox()
+        self.set_combo_box_stylesheet(self.quality_level_combo_box)
         self.quality_level_combo_box.addItems(["Низкое", "Среднее", "Высокое"])
         self.main_layout.addWidget(self.quality_level_combo_box, 3, 1, 1, 2)
 
@@ -70,6 +75,7 @@ class SettingsUI(QWidget):
         self.main_layout.addWidget(label, 5, 0, 1, 1)
 
         self.fps_limit_combo_box = QComboBox()
+        self.set_combo_box_stylesheet(self.fps_limit_combo_box)
         self.fps_limit_combo_box.addItems([
             "Без ограничений", "Ограничение 60", "Ограничение 30"
         ])
@@ -131,7 +137,8 @@ class SettingsUI(QWidget):
             QMessageBox.critical(
                 self,
                 "Ошибка при установке шрифта",
-                f"Данный шрифт некорректен. Шрифт по умолчанию: {font_info.family()}",
+                "Данный шрифт некорректен. Шрифт по умолчанию:"
+                f" {font_info.family()}",
             )
 
     @property
@@ -150,6 +157,10 @@ class SettingsUI(QWidget):
     def set_button_stylesheet(self, button):
         button.setStyleSheet("color: black;")
         button.setFont(self._font)
+
+    def set_combo_box_stylesheet(self, combo_box):
+        combo_box.setStyleSheet("color: black;")
+        combo_box.setFont(self._font)
 
     @staticmethod
     def set_button_color(button, color):
@@ -170,7 +181,9 @@ class SettingsUI(QWidget):
             if item is not None:
                 widget = item.widget()
                 if column:
-                    current_color = widget.palette().color(QPalette.Button).name()
+                    current_color = (
+                        widget.palette().color(QPalette.Button).name()
+                    )
                     if current_color == "#008000":
                         self.set_button_color(widget, "white")
         self.set_button_color(button, "green")
@@ -185,7 +198,9 @@ class SettingsUI(QWidget):
                 elif isinstance(widget, QSlider):
                     self._dict_settings[key] = widget.value()
                 elif isinstance(widget, QPushButton):
-                    current_color = widget.palette().color(QPalette.Button).name()
+                    current_color = (
+                        widget.palette().color(QPalette.Button).name()
+                    )
                     if current_color == "#008000":
                         self._dict_settings[key] = widget.text()
                 else:
@@ -199,5 +214,40 @@ class SettingsUI(QWidget):
         directory.mkdir(parents=True, exist_ok=True)
 
         with file_path.open("w", encoding="utf-8") as json_file:
-            json.dump(self._dict_settings, json_file, ensure_ascii=False, indent=4)
+            json.dump(
+                self._dict_settings, json_file, ensure_ascii=False, indent=4
+            )
         QMessageBox.information(self, "Готово", "Настройки сохранены")
+
+    def default_settings(self):
+        dict_settings = {
+            "Громкость звука": 50,
+            "Уровень сложности": "Легкий",
+            "Разрешение экрана": (1920, 1080),
+            "Качество текстур": "Среднее",
+            "Ограничение по FPS": "Без ограничений",
+            "Вертикальная синхронизация": True,
+        }
+        self.set_settings(dict_settings)
+
+    def set_settings(
+        self, dict_settings=json.load(open("user_data/settings.json", "r"))
+    ):
+        self._dict_settings = dict_settings
+
+        # for row in range(self.main_layout.rowCount()):
+        #     for column in range(self.main_layout.columnCount()):
+        #         item = self.main_layout.itemAtPosition(row, column)
+        #         widget = item.widget()
+        #         if column == 0:
+        #             key = widget.text()
+        #         elif isinstance(widget, QSlider):
+        #             self._dict_settings[key] = widget.value()
+        #         elif isinstance(widget, QPushButton):
+        #             current_color = (
+        #                 widget.palette().color(QPalette.Button).name()
+        #             )
+        #             if current_color == "#008000":
+        #                 self._dict_settings[key] = widget.text()
+        #         else:
+        #             self._dict_settings[key] = widget.currentText()
