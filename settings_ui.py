@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QFont, QFontInfo
+from PyQt5.QtGui import QFont, QFontInfo, QPalette, QColor
 from PyQt5.QtWidgets import (
     QWidget,
     QPushButton,
@@ -57,10 +57,11 @@ class SettingsUI(QWidget):
         self.set_lables_style(label)
         self.main_layout.addWidget(label, 4, 0, 1, 1)
 
-        for i, button in enumerate(["Оконный", "Полноэкранный"]):
-            button = QPushButton(f"{button}")
-            self.set_button_stylesheet(button)
-            self.main_layout.addWidget(button, 4, i + 1, 1, 1)
+        window_mode_button = QPushButton("Оконный")
+        self.create_button(window_mode_button, 4, 1)
+
+        fullscreen_mode_button = QPushButton("Полноэкранный")
+        self.create_button(fullscreen_mode_button, 4, 2)
 
         label = QLabel("Ограничение FPS")
         self.set_lables_style(label)
@@ -76,10 +77,11 @@ class SettingsUI(QWidget):
         self.set_lables_style(label)
         self.main_layout.addWidget(label, 6, 0, 1, 1)
 
-        for i, button in enumerate(["Вкл", "Выкл"]):
-            button = QPushButton(f"{button}")
-            self.set_button_stylesheet(button)
-            self.main_layout.addWidget(button, 6, i + 1, 1, 1)
+        vert_sync_on_button = QPushButton("Вкл")
+        self.create_button(vert_sync_on_button, 6, 1)
+
+        vert_sync_off_button = QPushButton("Выкл")
+        self.create_button(vert_sync_off_button, 6, 2)
 
         self.back_button = QPushButton("Назад")
         self.set_button_stylesheet(self.back_button)
@@ -138,3 +140,25 @@ class SettingsUI(QWidget):
     def set_button_stylesheet(self, button):
         button.setStyleSheet("color: black;")
         button.setFont(self._font)
+
+    def get_button_statement(self, button, y):
+        for column in range(self.main_layout.columnCount()):
+            item = self.main_layout.itemAtPosition(y, column)
+            if item is not None:
+                widget = item.widget()
+                current_color = widget.palette().color(QPalette.Button).name()
+                if current_color == "#008000":
+                    self.set_button_color(widget, "white")
+        self.set_button_color(button, "green")
+
+    def set_button_color(self, button, color):
+        palette = button.palette()
+        palette.setColor(QPalette.Button, QColor(f"{color}"))
+
+        button.setPalette(palette)
+        button.setAutoFillBackground(True)
+
+    def create_button(self, button, y, x):
+        button.clicked.connect(lambda: self.get_button_statement(button, y))
+        self.set_button_stylesheet(button)
+        self.main_layout.addWidget(button, y, x, 1, 1)
