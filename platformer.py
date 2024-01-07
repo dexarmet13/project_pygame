@@ -1,46 +1,57 @@
 import pygame
 import sys
 
-
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
+GRAVITY = 0.95
+JUMP_STRENGTH = -16
+MOVE_SPEED = 9
 
-bg = pygame.image.load("background2.PNG")
+bg = pygame.image.load("src/main_window_background.png")
 
 
+# Класс игрока
 class Player(pygame.sprite.Sprite):
-    right = True
-
-    # Методы
-    def __init__(self):
+    def __init__(self, image_path="src/hero_texture.png"):
         super().__init__()
 
-        self.image = pygame.image.load("x1589896344.png.pagespeed.ic.Obt0dMzh8-.png")
-
+        self.image = pygame.image.load(image_path)
         self.rect = self.image.get_rect()
-
         self.change_x = 0
         self.change_y = 0
+        self.level = None
+        self.facing_right = True
 
     def update(self):
-        self.calc_grav()
+        self._calc_grav()
 
         self.rect.x += self.change_x
+        self._handle_horizontal_collisions()
 
+        self.rect.y += self.change_y
+        self._handle_vertical_collisions()
+
+    def _calc_grav(self):
+        if self.change_y == 0:
+            self.change_y = 1
+        else:
+            self.change_y += GRAVITY
+
+        if self.rect.bottom >= SCREEN_HEIGHT and self.change_y >= 0:
+            self.change_y = 0
+            self.rect.bottom = SCREEN_HEIGHT
+
+    def _handle_horizontal_collisions(self):
         block_hit_list = pygame.sprite.spritecollide(
             self, self.level.platform_list, False
         )
-
         for block in block_hit_list:
             if self.change_x > 0:
                 self.rect.right = block.rect.left
             elif self.change_x < 0:
                 self.rect.left = block.rect.right
 
-        # Передвигаемся вверх/вниз
-        self.rect.y += self.change_y
-
-        # То же самое, вот только уже для вверх/вниз
+    def _handle_vertical_collisions(self):
         block_hit_list = pygame.sprite.spritecollide(
             self, self.level.platform_list, False
         )
@@ -52,37 +63,27 @@ class Player(pygame.sprite.Sprite):
 
             self.change_y = 0
 
-    def calc_grav(self):
-        if self.change_y == 0:
-            self.change_y = 1
-        else:
-            self.change_y += 0.95
-
-        if self.rect.y >= SCREEN_HEIGHT - self.rect.height and self.change_y >= 0:
-            self.change_y = 0
-            self.rect.y = SCREEN_HEIGHT - self.rect.height
-
     def jump(self):
-        self.rect.y += 10
+        self.rect.y += 2
         platform_hit_list = pygame.sprite.spritecollide(
             self, self.level.platform_list, False
         )
-        self.rect.y -= 10
+        self.rect.y -= 2
 
-        if len(platform_hit_list) > 0 or self.rect.bottom >= SCREEN_HEIGHT:
-            self.change_y = -16
+        if platform_hit_list or self.rect.bottom >= SCREEN_HEIGHT:
+            self.change_y = JUMP_STRENGTH
 
     def go_left(self):
-        self.change_x = -9
-        if self.right:
+        self.change_x = -MOVE_SPEED
+        if self.facing_right:
             self.flip()
-            self.right = False
+            self.facing_right = False
 
     def go_right(self):
-        self.change_x = 9
-        if not self.right:
+        self.change_x = MOVE_SPEED
+        if not self.facing_right:
             self.flip()
-            self.right = True
+            self.facing_right = True
 
     def stop(self):
         self.change_x = 0
@@ -94,23 +95,36 @@ class Player(pygame.sprite.Sprite):
 class Platform(pygame.sprite.Sprite):
     def __init__(self, width, height):
         super().__init__()
-        self.image = pygame.image.load("x1589896356.png.pagespeed.ic.CCG-d6R4BJ.png")
+        self.image = pygame.Surface([width, height])
+        self.image.fill((0, 0, 0))
         self.rect = self.image.get_rect()
 
 
-# Класс для расстановки платформ на сцене
 class Level(object):
     def __init__(self, player):
         self.platform_list = pygame.sprite.Group()
         self.player = player
+        self.world_shift_x = 0
 
     def update(self):
         self.platform_list.update()
 
+    def shift_world(self, shift_x):
+        self.world_shift_x += shift_x
+        for platform in self.platform_list:
+            platform.rect.x += shift_x
+
     def draw(self, screen):
         screen.blit(bg, (0, 0))
 
-        self.platform_list.draw(screen)
+        for platform in self.platform_list:
+            screen.blit(
+                platform.image,
+                (
+                    platform.rect.x,
+                    platform.rect.y,
+                ),
+            )
 
 
 class Level_01(Level):
@@ -159,27 +173,46 @@ def main():
                 running = True
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                     player.go_left()
-                if event.key == pygame.K_RIGHT:
+                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     player.go_right()
-                if event.key == pygame.K_UP:
+                if (
+                    event.key == pygame.K_UP
+                    or event.key == pygame.K_SPACE
+                    or event.key == pygame.K_w
+                ):
                     player.jump()
 
             if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT and player.change_x < 0:
+                if (
+                    event.key == pygame.K_LEFT or event.key == pygame.K_a
+                ) and player.change_x < 0:
                     player.stop()
-                if event.key == pygame.K_RIGHT and player.change_x > 0:
+                if (
+                    event.key == pygame.K_RIGHT or event.key == pygame.K_d
+                ) and player.change_x > 0:
                     player.stop()
+
+        CAMERA_LEFT_MARGIN = SCREEN_WIDTH * 0.48
+        CAMERA_RIGHT_MARGIN = SCREEN_WIDTH * 0.52
+
+        player_center_x = player.rect.centerx
+        if player_center_x > CAMERA_RIGHT_MARGIN:
+            diff = player_center_x - CAMERA_RIGHT_MARGIN
+            player.rect.centerx = CAMERA_RIGHT_MARGIN
+            current_level.shift_world(-diff)
+        elif player_center_x < CAMERA_LEFT_MARGIN:
+            diff = CAMERA_LEFT_MARGIN - player_center_x
+            player.rect.centerx = CAMERA_LEFT_MARGIN
+            current_level.shift_world(diff)
+
         active_sprite_list.update()
         current_level.update()
-        if player.rect.right > SCREEN_WIDTH:
-            player.rect.right = SCREEN_WIDTH
-        if player.rect.left < 0:
-            player.rect.left = 0
+
         current_level.draw(screen)
         active_sprite_list.draw(screen)
-        clock.tick(30)
+        clock.tick(45)
         pygame.display.flip()
     pygame.quit()
 

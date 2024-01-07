@@ -250,17 +250,23 @@ class SettingsUI(QWidget):
         dict_settings = {
             "Громкость звука": 50,
             "Уровень сложности": "Средний",
-            "Разрешение экрана": [2560, 1440],
+            "Разрешение экрана": [1920, 1080],
             "Качество текстур": "Среднее",
             "Режим отображения": "Оконный",
-            "Ограничение по FPS": 60,
-            "Вертикальная синхронизация": False,
+            "Ограничение по FPS": None,
+            "Вертикальная синхронизация": True,
         }
         self.set_settings(dict_settings)
 
-    def set_settings(
-        self, dict_settings=json.load(open("user_data/settings.json", "r"))
-    ):
+    def set_settings(self, dict_settings=None):
+        if dict_settings is None:
+            if not Path("user_data/settings.json").exists():
+                self.reset_settings()
+                return
+            with Path("user_data/settings.json").open(
+                encoding="utf-8"
+            ) as json_file:
+                dict_settings = json.load(json_file)
         self._dict_settings = dict_settings
         for row in range(self.main_layout.rowCount()):
             for column in range(self.main_layout.columnCount()):
