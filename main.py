@@ -10,6 +10,7 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QSize
 from welcome_window_ui import WelcomeWindowUI
 from settings_ui import SettingsUI
+from platformer import main
 
 
 class MainWindow(QMainWindow):
@@ -43,6 +44,7 @@ class MainWindow(QMainWindow):
         self.set_button_stylesheet(
             self.welcome_window.settings_button, "src/buttons_texture.png"
         )
+        self.welcome_window.play_button.clicked.connect(self.play)
         self.set_button_stylesheet(
             self.welcome_window.play_button, "src/play_button_texture.png"
         )
@@ -125,6 +127,11 @@ class MainWindow(QMainWindow):
         self.center()
 
         self.main_stacked_widget.setCurrentWidget(self.welcome_window)
+
+    def play(self):
+        self.hide()
+        main()
+        self.show()
 
 
 def except_hook(cls, exception, traceback):
