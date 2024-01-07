@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from PyQt5.QtGui import QFont, QFontInfo, QPalette, QColor
+from PyQt5.QtGui import QFont, QFontInfo, QPalette, QColor, QIcon
 from PyQt5.QtWidgets import (
     QWidget,
     QPushButton,
@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QComboBox,
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize
 
 
 class SettingsUI(QWidget):
@@ -93,6 +93,8 @@ class SettingsUI(QWidget):
 
         self.back_button = QPushButton("Назад")
         self.set_button_stylesheet(self.back_button)
+        self.back_button.setIcon(QIcon("src/back_button_texture.png"))
+        self.back_button.setIconSize(QSize(34, 34))
         self.main_layout.addWidget(self.back_button, 7, 0, 1, 1)
 
         self.accept_button = QPushButton("Применить")
@@ -259,7 +261,6 @@ class SettingsUI(QWidget):
     def set_settings(
         self, dict_settings=json.load(open("user_data/settings.json", "r"))
     ):
-        print(dict_settings)
         self._dict_settings = dict_settings
         for row in range(self.main_layout.rowCount()):
             for column in range(self.main_layout.columnCount()):
@@ -292,7 +293,6 @@ class SettingsUI(QWidget):
                         widget.setCurrentText(
                             f"{self._dict_settings[key][0]}*{self._dict_settings[key][1]}"
                         )
-                        print(self._dict_settings[key])
                     elif row == 5:
                         if self._dict_settings[key] is None:
                             widget.setCurrentText("Без ограничений")
