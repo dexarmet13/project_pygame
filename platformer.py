@@ -172,7 +172,7 @@ def main():
             if event.type == pygame.QUIT:
                 running = True
 
-            if event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                     player.go_left()
                 if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
@@ -184,7 +184,7 @@ def main():
                 ):
                     player.jump()
 
-            if event.type == pygame.KEYUP:
+            elif event.type == pygame.KEYUP:
                 if (
                     event.key == pygame.K_LEFT or event.key == pygame.K_a
                 ) and player.change_x < 0:
