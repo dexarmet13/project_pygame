@@ -5,7 +5,7 @@ import sys
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
-bg = pygame.image.load("background2.PNG")
+bg = pygame.image.load("src/main_window_background.png")
 
 
 class Player(pygame.sprite.Sprite):
@@ -15,7 +15,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
 
-        self.image = pygame.image.load("x1589896344.png.pagespeed.ic.Obt0dMzh8-.png")
+        self.image = pygame.image.load("src/hero_texture.png")
 
         self.rect = self.image.get_rect()
 
@@ -58,7 +58,10 @@ class Player(pygame.sprite.Sprite):
         else:
             self.change_y += 0.95
 
-        if self.rect.y >= SCREEN_HEIGHT - self.rect.height and self.change_y >= 0:
+        if (
+            self.rect.y >= SCREEN_HEIGHT - self.rect.height
+            and self.change_y >= 0
+        ):
             self.change_y = 0
             self.rect.y = SCREEN_HEIGHT - self.rect.height
 
@@ -94,7 +97,7 @@ class Player(pygame.sprite.Sprite):
 class Platform(pygame.sprite.Sprite):
     def __init__(self, width, height):
         super().__init__()
-        self.image = pygame.image.load("x1589896356.png.pagespeed.ic.CCG-d6R4BJ.png")
+        self.image = pygame.image.load("src/ground_texture.png")
         self.rect = self.image.get_rect()
 
 
