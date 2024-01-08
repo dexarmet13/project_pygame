@@ -1,17 +1,13 @@
 import pygame
+from const import SCREEN_HEIGHT, SCREEN_WIDTH
 
 
-class Platform(pygame.sprite.Sprite):
-    def __init__(self, width, height):
-        super().__init__()
-        self.image = pygame.Surface([width, height])
-        self.image.fill((0, 0, 0))
-        self.rect = self.image.get_rect()
-
-
-class Level(object):
-    def __init__(self, player):
-        self.bg = pygame.image.load("src/main_window_background.png")
+class Level:
+    def __init__(self, player, bg_image_file):
+        self.bg = pygame.image.load(bg_image_file).convert_alpha()
+        self.bg = pygame.transform.scale(
+            self.bg, (SCREEN_WIDTH, SCREEN_HEIGHT)
+        )
         self.platform_list = pygame.sprite.Group()
         self.player = player
         self.world_shift_x = 0
@@ -26,29 +22,38 @@ class Level(object):
 
     def draw(self, screen):
         screen.blit(self.bg, (0, 0))
-
-        for platform in self.platform_list:
-            screen.blit(
-                platform.image,
-                (
-                    platform.rect.x,
-                    platform.rect.y,
-                ),
-            )
+        self.platform_list.draw(screen)
 
 
 class Level_01(Level):
     def __init__(self, player):
-        Level.__init__(self, player)
+        super().__init__(player, "src/main_window_background.png")
+
+        platform_image = pygame.image.load(
+            "src/platform_texture.png"
+        ).convert_alpha()
+
         level = [
-            [210, 32, 500, 475],
-            [210, 32, 175, 400],
-            [210, 32, 575, 300],
+            [50, 50, 350, 400],
+            [50, 50, 300, 400],
+            [50, 50, 250, 400],
+            [50, 50, 500, 475],
+            [50, 50, 550, 475],
+            [50, 50, 600, 475],
+            [50, 50, 550, 275],
+            [50, 50, 600, 275],
+            [50, 50, 650, 275],
         ]
 
         for platform in level:
-            block = Platform(platform[0], platform[1])
+            block = Platform(platform[0], platform[1], platform_image)
             block.rect.x = platform[2]
             block.rect.y = platform[3]
-            block.player = self.player
             self.platform_list.add(block)
+
+
+class Platform(pygame.sprite.Sprite):
+    def __init__(self, width, height, image):
+        super().__init__()
+        self.image = pygame.transform.scale(image, (width, height))
+        self.rect = self.image.get_rect()

@@ -5,12 +5,16 @@ from const import *
 class Player(pygame.sprite.Sprite):
     def __init__(self, image_path="src/hero_texture.png"):
         super().__init__()
-
-        self.image = pygame.image.load(image_path)
+        self.image_right = pygame.image.load(image_path)
+        self.image = self.image_right
         self.rect = self.image.get_rect()
+        self.image_left = pygame.transform.flip(self.image_right, True, False)
+
         self.change_x = 0
         self.change_y = 0
+
         self.level = None
+
         self.facing_right = True
 
     def update(self):
@@ -67,17 +71,14 @@ class Player(pygame.sprite.Sprite):
     def go_left(self):
         self.change_x = -MOVE_SPEED
         if self.facing_right:
-            self.flip()
+            self.image = self.image_left
             self.facing_right = False
 
     def go_right(self):
         self.change_x = MOVE_SPEED
         if not self.facing_right:
-            self.flip()
+            self.image = self.image_right
             self.facing_right = True
 
     def stop(self):
         self.change_x = 0
-
-    def flip(self):
-        self.image = pygame.transform.flip(self.image, True, False)
