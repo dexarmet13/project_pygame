@@ -5,6 +5,8 @@ from const import *
 class Player(pygame.sprite.Sprite):
     def __init__(self, image_path="src/hero_texture.png"):
         super().__init__()
+        self.display_size = pygame.display.get_surface().get_size()
+
         self.image_right = pygame.image.load(image_path)
         self.image = self.image_right
         self.rect = self.image.get_rect()
@@ -32,9 +34,9 @@ class Player(pygame.sprite.Sprite):
         else:
             self.change_y += GRAVITY
 
-        if self.rect.bottom >= SCREEN_HEIGHT and self.change_y >= 0:
+        if self.rect.bottom >= self.display_size[1] and self.change_y >= 0:
             self.change_y = 0
-            self.rect.bottom = SCREEN_HEIGHT
+            self.rect.bottom = self.display_size[1]
 
     def _handle_horizontal_collisions(self):
         block_hit_list = pygame.sprite.spritecollide(
@@ -65,7 +67,7 @@ class Player(pygame.sprite.Sprite):
         )
         self.rect.y -= 2
 
-        if platform_hit_list or self.rect.bottom >= SCREEN_HEIGHT:
+        if platform_hit_list or self.rect.bottom >= self.display_size[1]:
             self.change_y = JUMP_STRENGTH
 
     def go_left(self):

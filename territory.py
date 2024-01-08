@@ -1,12 +1,12 @@
 import pygame
-from const import SCREEN_HEIGHT, SCREEN_WIDTH
 
 
 class Level:
     def __init__(self, player, bg_image_file):
+        self.display_size = pygame.display.get_surface().get_size()
         self.bg = pygame.image.load(bg_image_file).convert_alpha()
         self.bg = pygame.transform.scale(
-            self.bg, (SCREEN_WIDTH, SCREEN_HEIGHT)
+            self.bg, (self.display_size[0], self.display_size[1])
         )
         self.platform_list = pygame.sprite.Group()
         self.player = player
