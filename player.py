@@ -1,5 +1,5 @@
 import pygame
-from const import *
+from const import MOVE_SPEED, JUMP_STRENGTH, GRAVITY
 
 
 class Player(pygame.sprite.Sprite):
