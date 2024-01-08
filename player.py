@@ -61,7 +61,8 @@ class Player(pygame.sprite.Sprite):
         if self.rect.bottom >= self.display_size[1] and self.change_y >= 0:
             self.change_y = 0
             self.rect.bottom = self.display_size[1]
-def _handle_horizontal_collisions(self):
+
+    def _handle_horizontal_collisions(self):
         block_hit_list = pygame.sprite.spritecollide(
             self, self.level.platform_list, False
         )
@@ -107,7 +108,6 @@ def _handle_horizontal_collisions(self):
             self.image = self.image_right
             self.facing_right = True
             self.move_change_image(True)
-
 
     def stop(self):
         self.change_x = 0
