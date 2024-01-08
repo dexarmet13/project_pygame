@@ -75,7 +75,7 @@ class GameWindow:
                     if event.key == pygame.K_F1:
                         flag_sountrack = not flag_sountrack
                         if flag_sountrack:
-                            pygame.mixer.music.stop()
+                            pygame.mixer.music.pause()
                     if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                         player.go_left()
                     if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
