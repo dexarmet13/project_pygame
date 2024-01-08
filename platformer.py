@@ -1,89 +1,125 @@
 import pygame
 import sys
+from pathlib import Path
+import json
 from territory import Level_01
 from player import Player
-from const import SCREEN_HEIGHT, SCREEN_WIDTH
 
 
-def main():
-    pygame.init()
-    size = [SCREEN_WIDTH, SCREEN_HEIGHT]
-    screen = pygame.display.set_mode(size)
+class GameWindow:
+    def apply_settings(self):
+        json_path = Path(__file__).parent / "user_data" / "settings.json"
+        with json_path.open("r", encoding="utf-8") as json_file:
+            settings = json.load(json_file)
+            resolution = None
+            screen = None
+            fullscreen = False
+            vsync = False
+            for key, value in settings.items():
+                if key == "Громкость звука":
+                    pygame.mixer.music.set_volume(value / 100)
+                elif key == "Уровень сложности":
+                    pass
+                elif key == "Разрешение экрана":
+                    resolution = (value[0], value[1])
+                elif key == "Качество текстур":
+                    pass
+                elif key == "Режим отображения":
+                    if value == "Полноэкранный":
+                        fullscreen = True
+                elif key == "Вертикальная синхронизация":
+                    vsync = True
 
-    pygame.display.set_caption("Платформер")
-    player = Player()
-    level_list = []
-    level_list.append(Level_01(player))
-    current_level_no = 0
-    current_level = level_list[current_level_no]
+            flags = 0
+            if fullscreen:
+                flags |= pygame.FULLSCREEN
+            if vsync:
+                flags |= pygame.SCALED
 
-    active_sprite_list = pygame.sprite.Group()
-    player.level = current_level
+            screen = pygame.display.set_mode(resolution, flags)
+            return screen
 
-    player.rect.x = 340
-    player.rect.y = SCREEN_HEIGHT - player.rect.height
-    active_sprite_list.add(player)
+    def main(self):
+        pygame.init()
 
-    running = False
-    flag_sountrack = False
+        screen = self.apply_settings()
+        display_size = pygame.display.get_surface().get_size()
 
-    clock = pygame.time.Clock()
-    pygame.mixer.music.load("sounds/ost_soundtrack.mp3")
-    pygame.mixer.music.play(-1, 0.0, 1)
+        pygame.display.set_caption("Платформер")
+        player = Player()
+        level_list = []
+        level_list.append(Level_01(player))
+        current_level_no = 0
+        current_level = level_list[current_level_no]
 
-    while not running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = True
+        active_sprite_list = pygame.sprite.Group()
+        player.level = current_level
 
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_F1:
-                    flag_sountrack = not flag_sountrack
-                    if flag_sountrack:
-                        pygame.mixer.music.stop()
-                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    player.go_left()
-                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    player.go_right()
-                if (
-                    event.key == pygame.K_UP
-                    or event.key == pygame.K_SPACE
-                    or event.key == pygame.K_w
-                ):
-                    player.jump()
+        player.rect.x = 340
+        player.rect.y = display_size[1] - player.rect.height
+        active_sprite_list.add(player)
 
-            elif event.type == pygame.KEYUP:
-                if (
-                    event.key == pygame.K_LEFT or event.key == pygame.K_a
-                ) and player.change_x < 0:
-                    player.stop()
-                if (
-                    event.key == pygame.K_RIGHT or event.key == pygame.K_d
-                ) and player.change_x > 0:
-                    player.stop()
+        running = False
+        flag_sountrack = False
 
-        CAMERA_LEFT_MARGIN = SCREEN_WIDTH * 0.48
-        CAMERA_RIGHT_MARGIN = SCREEN_WIDTH * 0.52
+        clock = pygame.time.Clock()
+        pygame.mixer.music.load("sounds/ost_soundtrack.mp3")
+        pygame.mixer.music.play(-1, 0.0, 1)
 
-        player_center_x = player.rect.centerx
-        if player_center_x > CAMERA_RIGHT_MARGIN:
-            diff = player_center_x - CAMERA_RIGHT_MARGIN
-            player.rect.centerx = CAMERA_RIGHT_MARGIN
-            current_level.shift_world(-diff)
-        elif player_center_x < CAMERA_LEFT_MARGIN:
-            diff = CAMERA_LEFT_MARGIN - player_center_x
-            player.rect.centerx = CAMERA_LEFT_MARGIN
-            current_level.shift_world(diff)
+        while not running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = True
 
-        active_sprite_list.update()
-        current_level.update()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_F1:
+                        flag_sountrack = not flag_sountrack
+                        if flag_sountrack:
+                            pygame.mixer.music.stop()
+                    if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                        player.go_left()
+                    if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                        player.go_right()
+                    if (
+                            event.key == pygame.K_UP
+                            or event.key == pygame.K_SPACE
+                            or event.key == pygame.K_w
+                    ):
+                        player.jump()
 
-        current_level.draw(screen)
-        active_sprite_list.draw(screen)
-        clock.tick(45)
-        pygame.display.flip()
-    pygame.quit()
+                elif event.type == pygame.KEYUP:
+                    if (
+                            event.key == pygame.K_LEFT or event.key == pygame.K_a
+                    ) and player.change_x < 0:
+                        player.stop()
+                    if (
+                            event.key == pygame.K_RIGHT or event.key == pygame.K_d
+                    ) and player.change_x > 0:
+                        player.stop()
+
+            CAMERA_LEFT_MARGIN = display_size[0] * 0.48
+            CAMERA_RIGHT_MARGIN = display_size[0] * 0.52
+
+            player_center_x = player.rect.centerx
+            if player_center_x > CAMERA_RIGHT_MARGIN:
+                diff = player_center_x - CAMERA_RIGHT_MARGIN
+                player.rect.centerx = CAMERA_RIGHT_MARGIN
+                current_level.shift_world(-diff)
+            elif player_center_x < CAMERA_LEFT_MARGIN:
+                diff = CAMERA_LEFT_MARGIN - player_center_x
+                player.rect.centerx = CAMERA_LEFT_MARGIN
+                current_level.shift_world(diff)
+
+            active_sprite_list.update()
+            current_level.update()
+
+            current_level.draw(screen)
+            active_sprite_list.draw(screen)
+            clock.tick(45)
+            pygame.display.flip()
+        pygame.quit()
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    game = GameWindow()
+    sys.exit(game.main())
