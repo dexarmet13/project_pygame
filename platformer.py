@@ -112,7 +112,7 @@ class GameWindow:
             pygame.display.flip()
         pygame.quit()
 
-
+        
 if __name__ == "__main__":
     game = GameWindow()
     sys.exit(game.main())
