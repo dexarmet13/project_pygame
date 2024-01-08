@@ -1,36 +1,19 @@
 import pygame
 import sys
-from player import *
-from platform import *
-
-# Переменные для установки ширины и высоты окна
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-
-# Подключение фото для заднего фона
-# Здесь лишь создание переменной, вывод заднего фона ниже в коде
-bg = pygame.image.load('background2.PNG')
+from territory import Level_01
+from player import Player
+from const import SCREEN_HEIGHT, SCREEN_WIDTH
 
 
 def main():
-    # Инициализация
     pygame.init()
-
-    # Установка высоты и ширины
     size = [SCREEN_WIDTH, SCREEN_HEIGHT]
     screen = pygame.display.set_mode(size)
 
-    # Название игры
     pygame.display.set_caption("Платформер")
-
-    # Создаем игрока
     player = Player()
-
-    # Создаем все уровни
     level_list = []
     level_list.append(Level_01(player))
-
-    # Устанавливаем текущий уровень
     current_level_no = 0
     current_level = level_list[current_level_no]
 
@@ -41,59 +24,64 @@ def main():
     player.rect.y = SCREEN_HEIGHT - player.rect.height
     active_sprite_list.add(player)
 
-    # Цикл будет до тех пор, пока пользователь не нажмет кнопку закрытия
-    done = False
+    running = False
+    flag_sountrack = False
 
-    # Используется для управления скоростью обновления экрана
     clock = pygame.time.Clock()
+    pygame.mixer.music.load("sounds/ost_soundtrack.mp3")
+    pygame.mixer.music.play(-1, 0.0, 1)
 
-    # Основной цикл программы
-    while not done:
-        # Отслеживание действий
+    while not running:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:  # Если закрыл программу, то останавливаем цикл
-                done = True
+            if event.type == pygame.QUIT:
+                running = True
 
-            # Если нажали на стрелки клавиатуры, то двигаем объект
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_F1:
+                    flag_sountrack = not flag_sountrack
+                    if flag_sountrack:
+                        pygame.mixer.music.stop()
+                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                     player.go_left()
-                if event.key == pygame.K_RIGHT:
+                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     player.go_right()
-                if event.key == pygame.K_UP:
+                if (
+                    event.key == pygame.K_UP
+                    or event.key == pygame.K_SPACE
+                    or event.key == pygame.K_w
+                ):
                     player.jump()
 
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT and player.change_x < 0:
+            elif event.type == pygame.KEYUP:
+                if (
+                    event.key == pygame.K_LEFT or event.key == pygame.K_a
+                ) and player.change_x < 0:
                     player.stop()
-                if event.key == pygame.K_RIGHT and player.change_x > 0:
+                if (
+                    event.key == pygame.K_RIGHT or event.key == pygame.K_d
+                ) and player.change_x > 0:
                     player.stop()
 
-        # Обновляем игрока
+        CAMERA_LEFT_MARGIN = SCREEN_WIDTH * 0.48
+        CAMERA_RIGHT_MARGIN = SCREEN_WIDTH * 0.52
+
+        player_center_x = player.rect.centerx
+        if player_center_x > CAMERA_RIGHT_MARGIN:
+            diff = player_center_x - CAMERA_RIGHT_MARGIN
+            player.rect.centerx = CAMERA_RIGHT_MARGIN
+            current_level.shift_world(-diff)
+        elif player_center_x < CAMERA_LEFT_MARGIN:
+            diff = CAMERA_LEFT_MARGIN - player_center_x
+            player.rect.centerx = CAMERA_LEFT_MARGIN
+            current_level.shift_world(diff)
+
         active_sprite_list.update()
-
-        # Обновляем объекты на сцене
         current_level.update()
 
-        # Если игрок приблизится к правой стороне, то дальше его не двигаем
-        if player.rect.right > SCREEN_WIDTH:
-            player.rect.right = SCREEN_WIDTH
-
-        # Если игрок приблизится к левой стороне, то дальше его не двигаем
-        if player.rect.left < 0:
-            player.rect.left = 0
-
-        # Рисуем объекты на окне
         current_level.draw(screen)
         active_sprite_list.draw(screen)
-
-        # Устанавливаем количество фреймов
-        clock.tick(30)
-
-        # Обновляем экран после рисования объектов
+        clock.tick(45)
         pygame.display.flip()
-
-    # Корректное закртытие программы
     pygame.quit()
 
 
