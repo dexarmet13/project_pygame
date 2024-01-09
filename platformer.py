@@ -30,13 +30,20 @@ class GameWindow:
                 elif key == "Вертикальная синхронизация":
                     vsync = True
 
-            flags = 0
-            if fullscreen:
-                flags |= pygame.FULLSCREEN
             if vsync:
-                flags |= pygame.SCALED
-
-            screen = pygame.display.set_mode(resolution, flags)
+                if fullscreen:
+                    screen = pygame.display.set_mode(
+                        resolution, pygame.FULLSCREEN, vsync=1
+                    )
+                else:
+                    screen = pygame.display.set_mode(resolution, vsync=1)
+            else:
+                if fullscreen:
+                    screen = pygame.display.set_mode(
+                        resolution, pygame.FULLSCREEN
+                    )
+                else:
+                    screen = pygame.display.set_mode(resolution)
             return screen
 
     def main(self):
@@ -112,7 +119,7 @@ class GameWindow:
             pygame.display.flip()
         pygame.quit()
 
-        
+
 if __name__ == "__main__":
     game = GameWindow()
     sys.exit(game.main())
