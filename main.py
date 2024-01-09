@@ -10,7 +10,7 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QSize
 from welcome_window_ui import WelcomeWindowUI
 from settings_ui import SettingsUI
-from platformer import main
+from platformer import GameWindow
 
 
 class MainWindow(QMainWindow):
@@ -130,7 +130,8 @@ class MainWindow(QMainWindow):
 
     def play(self):
         self.hide()
-        main()
+        game_window = GameWindow()
+        game_window.main()
         self.show()
 
 
