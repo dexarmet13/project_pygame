@@ -5,9 +5,10 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QStackedWidget,
     QDesktopWidget,
+    QMessageBox,
 )
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, Qt
 from welcome_window_ui import WelcomeWindowUI
 from settings_ui import SettingsUI
 from platformer import GameWindow
@@ -58,6 +59,21 @@ class MainWindow(QMainWindow):
         self.settings_window.back_button.clicked.connect(self.go_back)
 
         self.main_stacked_widget.addWidget(self.settings_window)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.showDialog()
+
+    def showDialog(self):
+        msgBox = QMessageBox()
+        msgBox.setIcon(QMessageBox.Information)
+        msgBox.setText("Закрыть приложение?")
+        msgBox.setWindowTitle("Подтверждение выхода")
+        msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+
+        returnValue = msgBox.exec()
+        if returnValue == QMessageBox.Yes:
+            self.close()
 
     def center(self):
         qr = self.frameGeometry()
