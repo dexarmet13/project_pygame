@@ -63,6 +63,8 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.showDialog()
+        elif event.key() == Qt.Key_Return:
+            self.play()
 
     def showDialog(self):
         msgBox = QMessageBox()
