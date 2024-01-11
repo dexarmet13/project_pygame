@@ -85,8 +85,11 @@ class GameWindow:
         active_sprite_list.add(self.player)
 
         running = False
+        flag_sountrack = False
 
         clock = pygame.time.Clock()
+        pygame.mixer.music.load("sounds/ost_soundtrack.mp3")
+        pygame.mixer.music.play(-1, 0.0, 1)
 
         while not running:
             events = pygame.event.get()
@@ -96,14 +99,18 @@ class GameWindow:
                     running = True
 
                 elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_F1:
+                        flag_sountrack = not flag_sountrack
+                        if flag_sountrack:
+                            pygame.mixer.music.pause()
                     if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                         self.player.go_left()
                     if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                         self.player.go_right()
                     if (
-                        event.key == pygame.K_UP
-                        or event.key == pygame.K_SPACE
-                        or event.key == pygame.K_w
+                            event.key == pygame.K_UP
+                            or event.key == pygame.K_SPACE
+                            or event.key == pygame.K_w
                     ):
                         self.player.jump()
                     if event.key == pygame.K_TAB:

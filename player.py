@@ -1,22 +1,17 @@
 import pygame
-from const import MOVE_SPEED, JUMP_STRENGTH, GRAVITY
+from const import *
+import pyganim
 
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, image_path="src/hero_texture.png"):
         super().__init__()
-        self.display_size = pygame.display.get_surface().get_size()
 
-        self.image_right = pygame.image.load(image_path)
-        self.image = self.image_right
+        self.image = pygame.image.load(image_path)
         self.rect = self.image.get_rect()
-        self.image_left = pygame.transform.flip(self.image_right, True, False)
-
         self.change_x = 0
         self.change_y = 0
-
         self.level = None
-
         self.facing_right = True
 
         # delayAnim= []
@@ -58,7 +53,7 @@ class Player(pygame.sprite.Sprite):
         else:
             self.change_y += GRAVITY
 
-        if self.rect.bottom >= self.display_size[1] and self.change_y >= 0:
+        if self.rect.bottom >= SCREEN_HEIGHT and self.change_y >= 0:
             self.change_y = 0
             self.rect.bottom = self.display_size[1]
 
@@ -91,24 +86,22 @@ class Player(pygame.sprite.Sprite):
         )
         self.rect.y -= 2
 
-        if platform_hit_list or self.rect.bottom >= self.display_size[1]:
+        if platform_hit_list or self.rect.bottom >= SCREEN_HEIGHT:
             self.change_y = JUMP_STRENGTH
             # self.move_change_image(False, False, True)
 
     def go_left(self):
         self.change_x = -MOVE_SPEED
         if self.facing_right:
-            self.image = self.image_left
-            self.facing_right = False
             self.move_change_image(False, True)
+            self.facing_right = False
 
     def go_right(self):
         self.change_x = MOVE_SPEED
         if not self.facing_right:
-            self.image = self.image_right
             self.facing_right = True
             self.move_change_image(True)
-
+            
     def stop(self):
         self.change_x = 0
         # self.move_change_image()

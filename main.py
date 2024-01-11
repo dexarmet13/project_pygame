@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QSize, Qt
 from welcome_window_ui import WelcomeWindowUI
 from settings_ui import SettingsUI
-from platformer import GameWindow
+from platformer import main
 
 
 class MainWindow(QMainWindow):
@@ -145,8 +145,7 @@ class MainWindow(QMainWindow):
 
     def play(self):
         self.hide()
-        game_window = GameWindow()
-        game_window.main()
+        main()
         self.show()
 
 
