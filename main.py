@@ -117,7 +117,6 @@ class MainWindow(QMainWindow):
             return False
         self.center()
         self.setWindowTitle("Settings")
-        self.settings_window.set_settings()
 
         self.main_stacked_widget.setCurrentWidget(self.settings_window)
 
