@@ -55,7 +55,7 @@ class Player(pygame.sprite.Sprite):
 
         if self.rect.bottom >= SCREEN_HEIGHT and self.change_y >= 0:
             self.change_y = 0
-            self.rect.bottom = SCREEN_HEIGHT
+            self.rect.bottom = self.display_size[1]
 
     def _handle_horizontal_collisions(self):
         block_hit_list = pygame.sprite.spritecollide(
@@ -99,15 +99,15 @@ class Player(pygame.sprite.Sprite):
     def go_right(self):
         self.change_x = MOVE_SPEED
         if not self.facing_right:
-            self.move_change_image(True)
             self.facing_right = True
-
+            self.move_change_image(True)
+            
     def stop(self):
         self.change_x = 0
         # self.move_change_image()
 
     def move_change_image(self, right=False, left=False, up=False, stop=False):
-        self.image = pygame.transform.flip(self.image, True, False)
+        pass
         # if up:
         #     self.image.fill(pygame.Color(COLOR))
         #     self.boltAnimJump.blit(self.image, (0, 0))

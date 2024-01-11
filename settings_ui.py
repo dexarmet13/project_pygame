@@ -19,10 +19,27 @@ class SettingsUI(QWidget):
         self._font = QFont()
         self._font.setPointSize(20)
 
-        self._dict_settings = {}
+        self._default_settings = {
+            "Громкость звука": 50,
+            "Уровень сложности": "Средний",
+            "Разрешение экрана": [1920, 1080],
+            "Качество текстур": "Среднее",
+            "Режим отображения": "Оконный",
+            "Ограничение по FPS": None,
+            "Вертикальная синхронизация": True,
+        }
 
         super().__init__()
         self.initUI()
+
+        if not Path("user_data/settings.json").exists():
+            self.reset_settings()
+        else:
+            with Path("user_data/settings.json").open(
+                "r", encoding="utf-8"
+            ) as json_file:
+                self.settings = json.load(json_file)
+            self.set_settings(self.settings)
 
     def initUI(self):
         self.frame = QFrame(self)
@@ -145,12 +162,12 @@ class SettingsUI(QWidget):
             )
 
     @property
-    def dict_settings(self):
-        return self._dict_settings
+    def default_settings(self):
+        return self._default_settings
 
-    @dict_settings.setter
-    def dict_settings(self, dict_settings):
-        self._dict_settings = dict_settings
+    @default_settings.setter
+    def default_settings(self, default_settings):
+        self._default_settings = default_settings
 
     def set_lables_style(self, label):
         label.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
@@ -167,11 +184,7 @@ class SettingsUI(QWidget):
 
     @staticmethod
     def set_button_color(button, color):
-        palette = button.palette()
-        palette.setColor(QPalette.Button, QColor(color))
-
-        button.setPalette(palette)
-        button.setAutoFillBackground(True)
+        button.setStyleSheet(f"background-color: {color}; color: black;")
 
     def create_button(self, button, y, x):
         button.clicked.connect(lambda: self.get_button_statement(button, y))
@@ -189,6 +202,8 @@ class SettingsUI(QWidget):
         self.set_button_color(button, "green")
 
     def accept_settings(self):
+        dict_settings = {}
+
         for row in range(self.main_layout.rowCount()):
             for column in range(self.main_layout.columnCount()):
                 item = self.main_layout.itemAtPosition(row, column)
@@ -197,77 +212,51 @@ class SettingsUI(QWidget):
                     if column == 0:
                         key = widget.text()
                     elif isinstance(widget, QSlider):
-                        self._dict_settings[key] = widget.value()
+                        dict_settings[key] = widget.value()
                     elif isinstance(widget, QPushButton):
                         current_color = (
                             widget.palette().color(QPalette.Button).name()
                         )
                         if current_color == "#008000":
                             if row == 6:
-                                self._dict_settings[key] = (
+                                dict_settings[key] = (
                                     widget.text() == "Включить"
                                 )
                             else:
-                                self._dict_settings[key] = widget.text()
+                                dict_settings[key] = widget.text()
                     elif isinstance(widget, QComboBox):
                         if row == 2:
                             values = widget.currentText().split("*")
-                            self._dict_settings[key] = (
+                            dict_settings[key] = (
                                 int(values[0]),
                                 int(values[1]),
                             )
                         elif row == 5:
                             text = widget.currentText()
-                            self._dict_settings[key] = (
+                            dict_settings[key] = (
                                 None
                                 if text == "Без ограничений"
                                 else int(text[-2:])
                             )
                         else:
-                            self._dict_settings[key] = widget.currentText()
+                            dict_settings[key] = widget.currentText()
 
-        if len(self._dict_settings) < self.main_layout.rowCount() - 1:
+        if len(dict_settings) < self.main_layout.rowCount() - 1:
             QMessageBox.critical(
                 self, "Ошибка", "Все настройки должны быть заполнены"
             )
             return False
 
-        self.create_json_file()
+        self.create_json_file(dict_settings)
 
-    def create_json_file(self):
-        directory = Path("user_data")
-        file_path = directory / "settings.json"
-
-        directory.mkdir(parents=True, exist_ok=True)
-
-        with file_path.open("w", encoding="utf-8") as json_file:
-            json.dump(
-                self._dict_settings, json_file, ensure_ascii=False, indent=4
-            )
+    def create_json_file(self, settings):
+        with Path("user_data/settings.json").open(
+            "w", encoding="utf-8"
+        ) as json_file:
+            json.dump(settings, json_file, ensure_ascii=False, indent=4)
         QMessageBox.information(self, "Готово", "Настройки сохранены")
 
-    def reset_settings(self):
-        dict_settings = {
-            "Громкость звука": 50,
-            "Уровень сложности": "Средний",
-            "Разрешение экрана": [1920, 1080],
-            "Качество текстур": "Среднее",
-            "Режим отображения": "Оконный",
-            "Ограничение по FPS": None,
-            "Вертикальная синхронизация": True,
-        }
-        self.set_settings(dict_settings)
-
-    def set_settings(self, dict_settings=None):
-        if dict_settings is None:
-            if not Path("user_data/settings.json").exists():
-                self.reset_settings()
-                return
-            with Path("user_data/settings.json").open(
-                encoding="utf-8"
-            ) as json_file:
-                dict_settings = json.load(json_file)
-        self._dict_settings = dict_settings
+    def set_settings(self, settings):
         for row in range(self.main_layout.rowCount()):
             for column in range(self.main_layout.columnCount()):
                 item = self.main_layout.itemAtPosition(row, column)
@@ -277,34 +266,46 @@ class SettingsUI(QWidget):
                 if column == 0:
                     key = widget.text()
                 elif isinstance(widget, QSlider):
-                    widget.setValue(self._dict_settings[key])
+                    widget.setValue(settings[key])
                 elif isinstance(widget, QPushButton):
                     if row == 6:
-                        if (
-                            widget.text() == "Включить"
-                            and self._dict_settings[key]
-                        ) or (
-                            widget.text() == "Выключить"
-                            and not self._dict_settings[key]
+                        if (widget.text() == "Включить" and settings[key]) or (
+                            widget.text() == "Выключить" and not settings[key]
                         ):
                             self.set_button_color(widget, "green")
                         else:
                             self.set_button_color(widget, "white")
-                    elif widget.text() == self._dict_settings[key]:
+                    elif widget.text() == settings[key]:
                         self.set_button_color(widget, "green")
                     else:
                         self.set_button_color(widget, "white")
                 else:
                     if row == 2:
                         widget.setCurrentText(
-                            f"{self._dict_settings[key][0]}*{self._dict_settings[key][1]}"
+                            f"{settings[key][0]}*{settings[key][1]}"
                         )
                     elif row == 5:
-                        if self._dict_settings[key] is None:
+                        if settings[key] is None:
                             widget.setCurrentText("Без ограничений")
                         else:
                             widget.setCurrentText(
-                                f"Ограничение {self._dict_settings[key]}"
+                                f"Ограничение {settings[key]}"
                             )
                     else:
-                        widget.setCurrentText(self._dict_settings[key])
+                        widget.setCurrentText(settings[key])
+
+    def reset_settings(self):
+        file_path = Path("user_data/settings.json")
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.touch(exist_ok=True)
+
+        self.set_default_settings()
+
+    def set_default_settings(self):
+        self.set_settings(self._default_settings)
+        with Path("user_data/settings.json").open(
+            "w", encoding="utf-8"
+        ) as json_file:
+            json.dump(
+                self._default_settings, json_file, ensure_ascii=False, indent=4
+            )
