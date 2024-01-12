@@ -1,5 +1,6 @@
 import pygame
-from const import MOVE_SPEED, JUMP_STRENGTH, GRAVITY
+from const import *
+import pyganim
 
 
 class Player(pygame.sprite.Sprite):
@@ -7,9 +8,11 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.display_size = pygame.display.get_surface().get_size()
 
-        self.image_right = pygame.image.load(image_path)
+        self.image_right = pygame.Surface((128, 128))
         self.image = self.image_right
+        self.image.fill(pygame.Color(COLOR))
         self.rect = self.image.get_rect()
+        self.image.set_colorkey(pygame.Color(COLOR))  #
         self.image_left = pygame.transform.flip(self.image_right, True, False)
 
         self.change_x = 0
@@ -19,31 +22,73 @@ class Player(pygame.sprite.Sprite):
 
         self.facing_right = True
 
-        # delayAnim= []
-        # for anim in ANIMATION_RIGHT:
-        #     delayAnim.append((anim, ANIMATION_FPS))
-        # self.delayAnimRight = pyganim.PygAnimation(delayAnim)
-        # self.delayAnimRight.play()
-        # delayAnim = []
-        # for anim in ANIMATION_LEFT:
-        #     delayAnim.append((anim, ANIMATION_FPS))
-        # self.delayAnimLeft = pyganim.PygAnimation(delayAnim)
-        # self.delayAnimLeft.play()
-        #
+        animation_delay= []
+        for anim in ANIMATION_RIGHT:
+            animation_delay.append((anim, ANIMATION_FPS))
+        self.animation_right = pyganim.PygAnimation(animation_delay)
+        self.animation_right.play()
+        animation_delay = []
+        for anim in ANIMATION_LEFT:
+            animation_delay.append((anim, ANIMATION_FPS))
+        self.animation_left = pyganim.PygAnimation(animation_delay)
+        self.animation_left.play()
         # self.delayAnimStay = pyganim.PygAnimation(ANIMATION_STAY)
         # self.delayAnimStay.play()
         # self.delayAnimStay.blit(self.image, (0, 0))
-        #
         # self.boltAnimJumpLeft = pyganim.PygAnimation(ANIMATION_JUMP_LEFT)
         # self.boltAnimJumpLeft.play()
-        #
         # self.boltAnimJumpRight = pyganim.PygAnimation(ANIMATION_JUMP_RIGHT)
         # self.boltAnimJumpRight.play()
-        #
         # self.boltAnimJump = pyganim.PygAnimation(ANIMATION_JUMP)
         # self.boltAnimJump.play()
 
-    def update(self):
+    def update(self, right=False, left=False, jump=False, stop=False):
+        if jump:
+            self.rect.y += 2
+            platform_hit_list = pygame.sprite.spritecollide(
+                self, self.level.platform_list, False
+            )
+            self.rect.y -= 2
+
+            if platform_hit_list or self.rect.bottom >= self.display_size[1]:
+                self.change_y = JUMP_STRENGTH
+                # self.move_change_image(False, False, True)
+
+        if left:
+            self.change_x = -MOVE_SPEED
+            self.image.fill(pygame.Color(COLOR))
+            if jump:  # для прыжка влево есть отдельная анимация
+                # self.boltAnimJumpLeft.blit(self.image, (0, 0))
+                pass
+            else:
+                self.animation_left.blit(self.image, (0, 0))
+            # if self.facing_right:
+            #     self.image = self.image_left
+            #     self.facing_right = False
+                # self.move_change_image(False, True)
+
+        if right:
+            self.change_x = MOVE_SPEED
+            self.image.fill(pygame.Color(COLOR))
+            if jump:
+                pass
+                # self.boltAnimJumpRight.blit(self.image, (0, 0))
+            else:
+                self.animation_right.blit(self.image, (0, 0))
+
+            # if not self.facing_right:
+            #     self.image = self.image_right
+            #     self.facing_right = True
+                # self.move_change_image(True)
+
+        if not (left or right):
+
+            self.change_x = 0
+            if not jump:
+                self.image.fill(pygame.Color(COLOR))
+                # self.delayAnimStay.blit(self.image, (0, 0))
+
+            # self.move_change_image()
         self._calc_grav()
 
         self.rect.x += self.change_x
