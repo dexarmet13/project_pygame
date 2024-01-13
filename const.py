@@ -4,10 +4,11 @@ ICON_DIR = os.path.dirname(__file__)
 
 GRAVITY = 0.95
 JUMP_STRENGTH = -16
+MAX_CHANGE_X = 20
 
 MOVE_SPEED = 9
 COLOR = "#888888"
-ANIMATION_FPS = 0.1
+ANIMATION_FPS = 0.05
 ANIMATION_RIGHT = [('animation/right1.png'), ('animation/right2.png'), ('animation/right3.png'),
                    ('animation/right4.png'), ('animation/right5.png'), ('animation/right6.png'),
                    ('animation/right7.png'), ('animation/right8.png'), ('animation/right9.png'),

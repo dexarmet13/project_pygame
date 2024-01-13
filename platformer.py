@@ -1,3 +1,5 @@
+from typing import Any
+
 import pygame
 import sys
 from pathlib import Path
@@ -80,16 +82,19 @@ class GameWindow:
         active_sprite_list = pygame.sprite.Group()
         self.player.level = current_level
 
+
+
         self.player.rect.x = 340
         self.player.rect.y = self.height - self.player.rect.height
         active_sprite_list.add(self.player)
         left = jump = right = False
-        stop = False
+        stop = shift = False
 
         running = False
         flag_soundtrack = False
 
         clock = pygame.time.Clock()
+        dt: Any = clock.tick(60)
         pygame.mixer.music.load("sounds/ost_soundtrack.mp3")
         pygame.mixer.music.play(-1)
 
@@ -127,6 +132,8 @@ class GameWindow:
                             and not self.hero_info_window.is_visible
                     ):
                         running = True
+                    if event.key == pygame.K_LSHIFT:
+                        shift = True
 
                 elif event.type == pygame.KEYUP:
                     if (
@@ -146,6 +153,8 @@ class GameWindow:
                     ):
                         # self.player.jump()
                         jump = False
+                    if event.key == pygame.K_LSHIFT:
+                        shift = False
 
 
             if self.hero_info_window.is_visible:
@@ -169,7 +178,7 @@ class GameWindow:
 
             active_sprite_list.update()
             current_level.update()
-            self.player.update(right, left, jump, stop)
+            self.player.update(right, left, jump, stop, shift, dt)
 
             current_level.draw(self.screen)
             active_sprite_list.draw(self.screen)
