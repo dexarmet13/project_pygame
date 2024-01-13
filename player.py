@@ -132,27 +132,27 @@ class Player(pygame.sprite.Sprite):
         self.change_x = 0
         # self.move_change_image()
 
-    def move_change_image(self, right=False, left=False, up=False, stop=False):
-        pass
-        # if up:
-        #     self.image.fill(pygame.Color(COLOR))
-        #     self.boltAnimJump.blit(self.image, (0, 0))
-        #
-        # if left:
-        #     self.image.fill(pygame.Color(COLOR))
-        #     if up:
-        #         self.boltAnimJumpLeft.blit(self.image, (0, 0))
-        #     else:
-        #         self.delayAnimLeft.blit(self.image, (0, 0))
-        #
-        # if right:
-        #     self.image.fill(pygame.Color(COLOR))
-        #     if up:
-        #         self.boltAnimJumpRight.blit(self.image, (0, 0))
-        #     else:
-        #         self.delayAnimRight.blit(self.image, (0, 0))
-        #
-        # if not (left or right):
-        #     if not up:
-        #         self.image.fill(pygame.Color(COLOR))
-        #         self.boltAnimStay.blit(self.image, (0, 0))
+    # def move_change_image(self, right=False, left=False, up=False, stop=False):
+    #     pass
+    # if up:
+    #     self.image.fill(pygame.Color(COLOR))
+    #     self.boltAnimJump.blit(self.image, (0, 0))
+    #
+    # if left:
+    #     self.image.fill(pygame.Color(COLOR))
+    #     if up:
+    #         self.boltAnimJumpLeft.blit(self.image, (0, 0))
+    #     else:
+    #         self.delayAnimLeft.blit(self.image, (0, 0))
+    #
+    # if right:
+    #     self.image.fill(pygame.Color(COLOR))
+    #     if up:
+    #         self.boltAnimJumpRight.blit(self.image, (0, 0))
+    #     else:
+    #         self.delayAnimRight.blit(self.image, (0, 0))
+    #
+    # if not (left or right):
+    #     if not up:
+    #         self.image.fill(pygame.Color(COLOR))
+    #         self.boltAnimStay.blit(self.image, (0, 0))

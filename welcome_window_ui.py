@@ -16,7 +16,7 @@ class WelcomeWindowUI(QWidget):
         self.button_layout = QHBoxLayout()
 
         self.settings_button = QPushButton("Настройки")
-        self.play_button = QPushButton("Играть")
+        self.play_button = QPushButton("Вход")
         self.about_us_button = QPushButton("Создатели")
 
         self.add_buttons_to_layout()
