@@ -54,6 +54,8 @@ class GameWindow:
                 elif key == "Режим отображения":
                     if value == "Полноэкранный":
                         fullscreen = True
+                elif key == "Ограничение по FPS":
+                    self.fps = value
                 elif key == "Вертикальная синхронизация":
                     vsync = True
 
@@ -160,7 +162,7 @@ class GameWindow:
             current_level.draw(self.screen)
             active_sprite_list.draw(self.screen)
 
-            clock.tick(45)
+            clock.tick(self.fps)
             pygame.display.flip()
         pygame.quit()
 
