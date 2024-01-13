@@ -32,12 +32,16 @@ class GameWindow:
     def apply_settings(self):
         json_path = Path(__file__).parent / "user_data" / "settings.json"
 
+        info = pygame.display.Info()
+        screen_width = info.current_w
+        screen_height = info.current_h
+
         with json_path.open("r", encoding="utf-8") as json_file:
             settings = json.load(json_file)
             resolution = None
             screen = None
             fullscreen = False
-            vsync = False
+            # vsync = False
             for key, value in settings.items():
                 if key == "Громкость звука":
                     pygame.mixer.music.set_volume(value / 100)
@@ -53,21 +57,19 @@ class GameWindow:
                 elif key == "Вертикальная синхронизация":
                     vsync = True
 
-            if vsync:
-                if fullscreen:
-                    screen = pygame.display.set_mode(
-                        resolution, pygame.FULLSCREEN, vsync=1
-                    )
-                else:
-                    screen = pygame.display.set_mode(resolution, vsync=1)
+        if not fullscreen:
+            if (
+                resolution[0] >= screen_width
+                and resolution[1] >= screen_height
+            ):
+                screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
             else:
-                if fullscreen:
-                    screen = pygame.display.set_mode(
-                        resolution, pygame.FULLSCREEN
-                    )
-                else:
-                    screen = pygame.display.set_mode(resolution)
-            return screen
+                screen = pygame.display.set_mode(resolution)
+        else:
+            screen = pygame.display.set_mode(
+                (resolution[0], resolution[1]), pygame.FULLSCREEN
+            )
+        return screen
 
     def main(self):
         pygame.display.set_caption("Платформер")
@@ -80,7 +82,7 @@ class GameWindow:
         active_sprite_list = pygame.sprite.Group()
         self.player.level = current_level
 
-        self.player.rect.x = 340
+        self.player.rect.x = 1000
         self.player.rect.y = self.height - self.player.rect.height
         active_sprite_list.add(self.player)
 
@@ -108,9 +110,9 @@ class GameWindow:
                     if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                         self.player.go_right()
                     if (
-                            event.key == pygame.K_UP
-                            or event.key == pygame.K_SPACE
-                            or event.key == pygame.K_w
+                        event.key == pygame.K_UP
+                        or event.key == pygame.K_SPACE
+                        or event.key == pygame.K_w
                     ):
                         self.player.jump()
                     if event.key == pygame.K_TAB:

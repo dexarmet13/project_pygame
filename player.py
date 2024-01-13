@@ -1,18 +1,24 @@
 import pygame
 from const import *
-import pyganim
+
+# import pyganim
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, image_path="src/hero_texture.png"):
+    def __init__(self, image_path: str = "src/hero_texture.png"):
         super().__init__()
-
         self.image = pygame.image.load(image_path)
         self.rect = self.image.get_rect()
+
         self.change_x = 0
         self.change_y = 0
+
         self.level = None
+
         self.facing_right = True
+
+        self._initialize_animations()
+        self._update_display_size()
 
         # delayAnim= []
         # for anim in ANIMATION_RIGHT:
@@ -40,6 +46,7 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         self._calc_grav()
+        self._update_display_size()
 
         self.rect.x += self.change_x
         self._handle_horizontal_collisions()
@@ -47,13 +54,20 @@ class Player(pygame.sprite.Sprite):
         self.rect.y += self.change_y
         self._handle_vertical_collisions()
 
+    def _initialize_animations(self):
+        # Initialize your animations here
+        pass
+
+    def _update_display_size(self):
+        self.display_size = pygame.display.get_surface().get_size()
+
     def _calc_grav(self):
         if self.change_y == 0:
             self.change_y = 1
         else:
             self.change_y += GRAVITY
 
-        if self.rect.bottom >= SCREEN_HEIGHT and self.change_y >= 0:
+        if self.rect.bottom >= self.display_size[1] and self.change_y >= 0:
             self.change_y = 0
             self.rect.bottom = self.display_size[1]
 
@@ -80,15 +94,23 @@ class Player(pygame.sprite.Sprite):
             self.change_y = 0
 
     def jump(self):
+        if self._prepare_for_jump():
+            self.change_y = -JUMP_STRENGTH
+            print(self.change_y)
+
+    def _prepare_for_jump(self):
+        if not self.level or not hasattr(self.level, "platform_list"):
+            return False
+
         self.rect.y += 2
         platform_hit_list = pygame.sprite.spritecollide(
             self, self.level.platform_list, False
         )
         self.rect.y -= 2
 
-        if platform_hit_list or self.rect.bottom >= SCREEN_HEIGHT:
-            self.change_y = JUMP_STRENGTH
-            # self.move_change_image(False, False, True)
+        return bool(
+            platform_hit_list or self.rect.bottom >= self.display_size[1]
+        )
 
     def go_left(self):
         self.change_x = -MOVE_SPEED
@@ -101,7 +123,7 @@ class Player(pygame.sprite.Sprite):
         if not self.facing_right:
             self.facing_right = True
             self.move_change_image(True)
-            
+
     def stop(self):
         self.change_x = 0
         # self.move_change_image()
