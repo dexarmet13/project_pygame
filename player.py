@@ -55,7 +55,6 @@ class Player(pygame.sprite.Sprite):
         self._handle_vertical_collisions()
 
     def _initialize_animations(self):
-        # Initialize your animations here
         pass
 
     def _update_display_size(self):
@@ -96,7 +95,6 @@ class Player(pygame.sprite.Sprite):
     def jump(self):
         if self._prepare_for_jump():
             self.change_y = -JUMP_STRENGTH
-            print(self.change_y)
 
     def _prepare_for_jump(self):
         if not self.level or not hasattr(self.level, "platform_list"):
