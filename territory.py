@@ -57,3 +57,8 @@ class Platform(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.transform.scale(image, (width, height))
         self.rect = self.image.get_rect()
+
+class BlockDie(Platform):
+    def __init__(self, x, y):
+        Platform.__init__(self, x, y)
+        self.image = pygame.image.load("src/dieBlock.png")

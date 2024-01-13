@@ -136,10 +136,13 @@ class Player(pygame.sprite.Sprite):
             self, self.level.platform_list, False
         )
         for block in block_hit_list:
-            if self.change_x > 0:
-                self.rect.right = block.rect.left
-            elif self.change_x < 0:
-                self.rect.left = block.rect.right
+                # if isinstance(block, BlockDie):
+                #     self.die()
+                # else:
+                    if self.change_x > 0:
+                        self.rect.right = block.rect.left
+                    elif self.change_x < 0:
+                        self.rect.left = block.rect.right
 
     def _handle_vertical_collisions(self):
         block_hit_list = pygame.sprite.spritecollide(
@@ -152,6 +155,14 @@ class Player(pygame.sprite.Sprite):
                 self.rect.top = block.rect.bottom
 
             self.change_y = 0
+
+    def teleporting(self, x, y):
+        self.rect.x = x
+        self.rect.y = y
+
+    def die(self):
+        pygame.time.wait(500)
+        self.teleporting(340, 560)
 
     # def jump(self):
     #     self.rect.y += 2
