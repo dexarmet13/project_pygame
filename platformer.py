@@ -4,8 +4,6 @@ from pathlib import Path
 import json
 from territory import Level_01
 from player import Player
-from hero_info_window import HeroInfoWindow
-from settings_ui import SettingsUI
 
 
 class GameWindow:
@@ -18,16 +16,6 @@ class GameWindow:
         self.height = self.display_size[1]
 
         self.player = Player()
-
-        qt_font = SettingsUI().font
-        self.hero_info_window = HeroInfoWindow(
-            (0, 0, 0),
-            (self.width, self.height),
-            pygame.font.SysFont(
-                qt_font.family(),
-                qt_font.pointSize(),
-            ),
-        )
 
     def apply_settings(self):
         json_path = Path(__file__).parent / "user_data" / "settings.json"
@@ -88,19 +76,19 @@ class GameWindow:
         self.player.rect.y = self.height - self.player.rect.height
         active_sprite_list.add(self.player)
 
-        running = False
+        running = True
         flag_sountrack = False
 
         clock = pygame.time.Clock()
         pygame.mixer.music.load("sounds/ost_soundtrack.mp3")
         pygame.mixer.music.play(-1, 0.0, 1)
 
-        while not running:
+        while running:
             events = pygame.event.get()
 
             for event in events:
                 if event.type == pygame.QUIT:
-                    running = True
+                    running = False
 
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_F1:
@@ -117,15 +105,8 @@ class GameWindow:
                         or event.key == pygame.K_w
                     ):
                         self.player.jump()
-                    if event.key == pygame.K_TAB:
-                        self.hero_info_window.is_visible = (
-                            not self.hero_info_window.is_visible
-                        )
-                    if (
-                        event.key == pygame.K_ESCAPE
-                        and not self.hero_info_window.is_visible
-                    ):
-                        running = True
+                    if event.key == pygame.K_ESCAPE:
+                        running = False
 
                 elif event.type == pygame.KEYUP:
                     if (
@@ -136,12 +117,6 @@ class GameWindow:
                         event.key == pygame.K_RIGHT or event.key == pygame.K_d
                     ) and self.player.change_x > 0:
                         self.player.stop()
-
-            if self.hero_info_window.is_visible:
-                self.hero_info_window.update(events)
-                self.hero_info_window.draw(self.screen)
-                pygame.display.flip()
-                continue
 
             CAMERA_LEFT_MARGIN = self.width * 0.48
             CAMERA_RIGHT_MARGIN = self.width * 0.52
@@ -164,6 +139,7 @@ class GameWindow:
 
             clock.tick(self.fps)
             pygame.display.flip()
+
         pygame.quit()
 
 

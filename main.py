@@ -12,6 +12,7 @@ from PyQt5.QtCore import QSize, Qt
 from welcome_window_ui import WelcomeWindowUI
 from settings_ui import SettingsUI
 from platformer import GameWindow
+from map_editor_window import MapEditorWindow
 
 
 class MainWindow(QMainWindow):
@@ -49,8 +50,9 @@ class MainWindow(QMainWindow):
         self.set_button_stylesheet(
             self.welcome_window.play_button, "src/play_button_texture.png"
         )
+        self.welcome_window.map_editor.clicked.connect(self.edit_map)
         self.set_button_stylesheet(
-            self.welcome_window.about_us_button, "src/buttons_texture.png"
+            self.welcome_window.map_editor, "src/buttons_texture.png"
         )
 
         self.main_stacked_widget.addWidget(self.welcome_window)
@@ -84,18 +86,19 @@ class MainWindow(QMainWindow):
         self.move(qr.topLeft())
 
     def set_background_pixmap(self, image_key):
+        self.screen = QApplication.primaryScreen()
+        self.screen_size = self.screen.size()
+
         pixmap = self._images.get(image_key)
         if pixmap:
-            screen = QApplication.primaryScreen()
-            screen_size = screen.size()
             pixmap_size = pixmap.size()
             if (
-                pixmap_size.width() > screen_size.width()
-                or pixmap_size.height() > screen_size.height()
+                pixmap_size.width() > self.screen_size.width()
+                or pixmap_size.height() > self.screen_size.height()
             ):
                 pixmap = pixmap.scaled(
-                    screen_size.width(),
-                    screen_size.height(),
+                    self.screen_size.width(),
+                    self.screen_size.height(),
                     QtCore.Qt.KeepAspectRatio,
                 )
 
@@ -115,14 +118,14 @@ class MainWindow(QMainWindow):
     def resize_window(self, image_key):
         pixmap = self._images.get(image_key)
         if pixmap:
-            screen = QApplication.primaryScreen()
-            screen_size = screen.size()
             pixmap_size = pixmap.size()
             if (
-                pixmap_size.width() > screen_size.width()
-                or pixmap_size.height() > screen_size.height()
+                pixmap_size.width() > self.screen_size.width()
+                or pixmap_size.height() > self.screen_size.height()
             ):
-                self.resize(screen_size.width(), screen_size.height())
+                self.resize(
+                    self.screen_size.width(), self.screen_size.height()
+                )
             else:
                 self.resize(pixmap_size.width(), pixmap_size.height())
             return True
@@ -148,6 +151,14 @@ class MainWindow(QMainWindow):
     def play(self):
         self.hide()
         game_windwow = GameWindow()
+        game_windwow.main()
+        self.show()
+
+    def edit_map(self):
+        self.hide()
+        game_windwow = MapEditorWindow(
+            (self.screen_size.width(), self.screen_size.height()),
+        )
         game_windwow.main()
         self.show()
 

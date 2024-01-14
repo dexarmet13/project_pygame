@@ -16,8 +16,8 @@ class WelcomeWindowUI(QWidget):
         self.button_layout = QHBoxLayout()
 
         self.settings_button = QPushButton("Настройки")
-        self.play_button = QPushButton("Вход")
-        self.about_us_button = QPushButton("Создатели")
+        self.play_button = QPushButton("Играть")
+        self.map_editor = QPushButton("Редактор")
 
         self.add_buttons_to_layout()
 
@@ -30,5 +30,5 @@ class WelcomeWindowUI(QWidget):
         self.button_layout.addStretch(1)
         self.button_layout.addWidget(self.settings_button)
         self.button_layout.addWidget(self.play_button)
-        self.button_layout.addWidget(self.about_us_button)
+        self.button_layout.addWidget(self.map_editor)
         self.button_layout.addStretch(1)
