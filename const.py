@@ -5,7 +5,6 @@ ICON_DIR = os.path.dirname(__file__)
 GRAVITY = 0.95
 JUMP_STRENGTH = -16
 MAX_CHANGE_X = 20
-
 MOVE_SPEED = 9
 COLOR = "#888888"
 ANIMATION_FPS = 0.05
@@ -37,3 +36,8 @@ ANIMATION_LEFT = [('animation/left1.png'), ('animation/left2.png'), ('animation/
 # ANIMATION_JUMP_RIGHT = [('%s/mario/jr.png' % ICON_DIR, 0.1)]
 # ANIMATION_JUMP = [('%s/mario/j.png' % ICON_DIR, 0.1)]
 # ANIMATION_STAY = [('%s/mario/0.png' % ICON_DIR, 0.1)]
+
+
+
+ENEMY_WITDH = 32
+ENEMY_HEIGHT = 46

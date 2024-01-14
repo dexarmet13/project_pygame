@@ -1,6 +1,7 @@
 import pygame
 from const import *
 import pyganim
+import Enemy
 
 
 class Player(pygame.sprite.Sprite):
@@ -81,7 +82,6 @@ class Player(pygame.sprite.Sprite):
                 # else:
                 #     self.animation_left.blit(self.image, (0, 0))
 
-
         if right:
             self.image.fill(pygame.Color(COLOR))
             if shift:
@@ -136,13 +136,13 @@ class Player(pygame.sprite.Sprite):
             self, self.level.platform_list, False
         )
         for block in block_hit_list:
-                # if isinstance(block, BlockDie):
-                #     self.die()
-                # else:
-                    if self.change_x > 0:
-                        self.rect.right = block.rect.left
-                    elif self.change_x < 0:
-                        self.rect.left = block.rect.right
+            # if isinstance(block, BlockDie) and isinstance(block, Enemy):
+            #     self.die()
+            # else:
+            if self.change_x > 0:
+                self.rect.right = block.rect.left
+            elif self.change_x < 0:
+                self.rect.left = block.rect.right
 
     def _handle_vertical_collisions(self):
         block_hit_list = pygame.sprite.spritecollide(
@@ -162,6 +162,10 @@ class Player(pygame.sprite.Sprite):
 
     def die(self):
         pygame.time.wait(500)
+        while True:
+            pygame.display.set_caption("Вы умерли")
+            pygame.time.wait(5000)
+            break
         self.teleporting(340, 560)
 
     # def jump(self):
