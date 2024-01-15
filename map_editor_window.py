@@ -82,8 +82,8 @@ class MapEditorWindow:
         self._screen_size = screen_size
         self.screen = pygame.display.set_mode(self._screen_size)
 
-        self.cell_width = self._screen_size[0] * 0.85 / 100 * 5
-        self.cell_height = self._screen_size[1] * 0.75 / 100 * 5
+        self.cell_width = int(self._screen_size[0] * 0.85 / 100 * 5 + 1)
+        self.cell_height = int(self._screen_size[1] * 0.75 / 100 * 5)
 
         self.selected_cells = []
 
@@ -143,6 +143,9 @@ class MapEditorWindow:
         while running:
             events = pygame.event.get()
 
+            self.map_editor_ui.draw(self.screen)
+            self.redraw_selected_cells()
+
             for event in events:
                 if event.type == pygame.QUIT:
                     running = False
@@ -172,10 +175,6 @@ class MapEditorWindow:
                     elif event.key == pygame.K_ESCAPE:
                         running = False
 
-            self.map_editor_ui.draw(self.screen)
-
-            self.redraw_selected_cells()
-
             if is_selecting:
                 current_mouse_pos = pygame.mouse.get_pos()
                 if fixed_area.collidepoint(
@@ -190,8 +189,8 @@ class MapEditorWindow:
         pygame.quit()
 
     def grid_position(self, screen_position):
-        grid_x = int(screen_position[0] // self.cell_width)
-        grid_y = int(screen_position[1] // self.cell_height)
+        grid_x = screen_position[0] // self.cell_width
+        grid_y = screen_position[1] // self.cell_height
         return grid_x, grid_y
 
     def highlight_selection_area(self, start_pos, current_pos):
@@ -227,7 +226,7 @@ class MapEditorWindow:
     def draw_cell(self, cell, color):
         x, y = cell
         cell_rect = pygame.Rect(
-            x * self.cell_width + 1,
+            x * self.cell_width - 1,
             y * self.cell_height,
             self.cell_width,
             self.cell_height,
