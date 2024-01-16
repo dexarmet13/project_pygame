@@ -44,7 +44,7 @@ class MapEditorUI:
                 ),
             )
 
-        for y in range(0, 101, 5):
+        for y in range(0, 101, 10):
             for x in range(0, 101, 5):
                 pygame.draw.line(
                     self.editor_surf,
@@ -97,9 +97,9 @@ class MapEditorWindow:
         self.screen = pygame.display.set_mode(self._screen_size)
 
         self.cell_width = int(self._screen_size[0] * 0.85 / 100 * 5 + 1)
-        self.cell_height = int(self._screen_size[1] * 0.75 / 100 * 5)
+        self.cell_height = int(self._screen_size[1] * 0.75 / 100 * 10)
 
-        self.selected_cells = []
+        self.selected_cells = {}
 
         self._font = pygame.font.Font(None, 36)
 
@@ -114,6 +114,7 @@ class MapEditorWindow:
         )
 
         self.selected_texture = None
+        self.selected_texture_rect = None
 
         self.load_images()
 
@@ -122,11 +123,18 @@ class MapEditorWindow:
         )
 
     def load_images(self):
-        texture_file = "src/ground_texture.png"
+        texture_paths = [
+            "src/grass_ground_texture.png",
+            "src/green_ground_texture.png",
+            "src/dirt_ground_texture.png",
+            "src/rock_ground_texture.png",
+            "src/lava_ground_texture.png",
+            "src/snow_ground_texture.png",
+        ]
         texture_size = (self.cell_width, self.cell_height)
         self.images = [
             PlatformTexture.get_texture(texture_file, texture_size)
-            for _ in range(8)
+            for texture_file in texture_paths
         ]
 
     def toggle_soundtrack(self, flag_soundtrack):
@@ -153,6 +161,7 @@ class MapEditorWindow:
 
         is_selecting = False
         selection_start = None
+        selected_texture_index = None
 
         while running:
             events = pygame.event.get()
@@ -165,43 +174,37 @@ class MapEditorWindow:
                     running = False
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
+                    selection_start = pygame.mouse.get_pos()
                     if event.button == 1:
-                        is_selecting = True
                         selection_start = pygame.mouse.get_pos()
+                        if (
+                            fixed_area.collidepoint(pygame.mouse.get_pos())
+                            and selected_texture_index is not None
+                        ):
+                            is_selecting = True
 
                 if event.type == pygame.MOUSEBUTTONUP:
                     if event.button == 1:
                         current_mouse_pos = pygame.mouse.get_pos()
+
                         if not fixed_area.collidepoint(current_mouse_pos):
                             selected_texture_index = (
                                 self.map_editor_ui.check_texture_selection(
                                     current_mouse_pos
                                 )
                             )
+
                             if selected_texture_index is not None:
                                 self.selected_texture = self.images[
                                     selected_texture_index
                                 ]
 
-                                texture_rect = (
+                                self.selected_texture_rect = (
                                     self.map_editor_ui.texture_rects[
                                         selected_texture_index
                                     ]
                                 )
-
-                                border_color = (
-                                    255,
-                                    0,
-                                    0,
-                                )
-
-                                self.draw_border(
-                                    self.screen, texture_rect, border_color
-                                )
-
-                        if fixed_area.collidepoint(
-                            current_mouse_pos
-                        ) and fixed_area.collidepoint(selection_start):
+                        elif fixed_area.collidepoint(selection_start):
                             is_selecting = False
                             self.select_cells(
                                 selection_start, current_mouse_pos
@@ -217,12 +220,16 @@ class MapEditorWindow:
 
             if is_selecting:
                 current_mouse_pos = pygame.mouse.get_pos()
-                if fixed_area.collidepoint(
-                    current_mouse_pos
-                ) and fixed_area.collidepoint(selection_start):
+                if fixed_area.collidepoint(current_mouse_pos):
                     self.highlight_selection_area(
                         selection_start, current_mouse_pos
                     )
+
+            if self.selected_texture_rect is not None:
+                border_color = (255, 0, 0)
+                self.draw_border(
+                    self.screen, self.selected_texture_rect, border_color
+                )
 
             pygame.display.flip()
 
@@ -247,7 +254,6 @@ class MapEditorWindow:
         start_grid_pos = self.grid_position(start_pos)
         end_grid_pos = self.grid_position(end_pos)
 
-        new_selected_cells = []
         for x in range(
             min(start_grid_pos[0], end_grid_pos[0]),
             max(start_grid_pos[0], end_grid_pos[0]) + 1,
@@ -256,13 +262,10 @@ class MapEditorWindow:
                 min(start_grid_pos[1], end_grid_pos[1]),
                 max(start_grid_pos[1], end_grid_pos[1]) + 1,
             ):
-                new_selected_cells.append((x, y))
-
-        self.selected_cells.extend(new_selected_cells)
-
-        if self.selected_texture is not None:
-            for cell in new_selected_cells:
-                self.draw_texture(cell, self.selected_texture)
+                cell = (x, y)
+                if self.selected_texture is not None:
+                    self.selected_cells[cell] = self.selected_texture
+                    self.draw_texture(cell, self.selected_texture)
 
     def draw_texture(self, cell, texture):
         x, y = cell
@@ -278,6 +281,5 @@ class MapEditorWindow:
         pygame.draw.rect(screen, color, rect, border_width)
 
     def redraw_selected_cells(self):
-        for cell in self.selected_cells:
-            if self.selected_texture is not None:
-                self.draw_texture(cell, self.selected_texture)
+        for cell, texture in self.selected_cells.items():
+            self.draw_texture(cell, texture)
