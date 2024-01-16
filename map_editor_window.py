@@ -14,13 +14,15 @@ class PlatformTexture:
 
 
 class MapEditorUI:
-    def __init__(self, screen_size, font, bg_image, images):
+    def __init__(self, screen_size, font, bg_image, images, cell_size):
         self.font = font
         self._screen_size = screen_size
         self.editor_surf = pygame.Surface(self._screen_size)
         self.bg = bg_image
         self.images = images
         self.texture_rects = []
+        self.cell_width = cell_size[0]
+        self.cell_height = cell_size[1]
 
     def draw(self, screen):
         self.editor_surf.fill((255, 255, 255))
@@ -34,15 +36,6 @@ class MapEditorUI:
                 self._screen_size[1] * 0.05,
             )
         )
-
-        for i in range(0, len(self.images)):
-            self.editor_surf.blit(
-                self.images[i],
-                (
-                    self._screen_size[0] * 0.88,
-                    self._screen_size[1] * 0.08 * (i + 1),
-                ),
-            )
 
         for y in range(0, 101, 10):
             for x in range(0, 101, 5):
@@ -69,12 +62,17 @@ class MapEditorUI:
                     ),
                 )
 
+        padding = self._screen_size[0] * 0.02
+
         for i, image in enumerate(self.images):
+            scaled_image = pygame.transform.scale(
+                image, (self.cell_width * 1.25, self.cell_height * 1.25)
+            )
             rect = self.editor_surf.blit(
-                image,
+                scaled_image,
                 (
-                    self._screen_size[0] * 0.88,
-                    self._screen_size[1] * 0.08 * (i + 1),
+                    self._screen_size[0] * 0.895,
+                    self._screen_size[1] * 0.08 * (i + 1) + padding * i,
                 ),
             )
             self.texture_rects.append(rect)
@@ -101,7 +99,7 @@ class MapEditorWindow:
 
         self.selected_cells = {}
 
-        self._font = pygame.font.Font(None, 36)
+        self._font = pygame.font.Font(None, 46)
 
         self.bg = pygame.transform.scale(
             pygame.image.load(
@@ -119,7 +117,11 @@ class MapEditorWindow:
         self.load_images()
 
         self.map_editor_ui = MapEditorUI(
-            self._screen_size, self._font, self.bg, self.images
+            self._screen_size,
+            self._font,
+            self.bg,
+            self.images,
+            (self.cell_width, self.cell_height),
         )
 
     def load_images(self):
