@@ -183,6 +183,15 @@ class MapEditorWindow:
                         ):
                             is_selecting = True
 
+                    if event.button == 3:
+                        selected_cell_pos = pygame.mouse.get_pos()
+                        if fixed_area.collidepoint(selected_cell_pos):
+                            selected_cell = self.grid_position(
+                                selected_cell_pos
+                            )
+
+                            self.selected_cells[selected_cell] = None
+
                 if event.type == pygame.MOUSEBUTTONUP:
                     if event.button == 1:
                         current_mouse_pos = pygame.mouse.get_pos()
@@ -281,5 +290,13 @@ class MapEditorWindow:
         pygame.draw.rect(screen, color, rect, border_width)
 
     def redraw_selected_cells(self):
+        cells_to_delete = []
+
         for cell, texture in self.selected_cells.items():
-            self.draw_texture(cell, texture)
+            if texture is not None:
+                self.draw_texture(cell, texture)
+            else:
+                cells_to_delete.append(cell)
+
+        for cell in cells_to_delete:
+            del self.selected_cells[cell]
