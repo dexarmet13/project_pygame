@@ -29,7 +29,7 @@ class Level_01(Level):
         super().__init__(player, "src/main_window_background.png")
 
         platform_image = pygame.image.load(
-            "src/ground_texture.png"
+            "src/snow_ground_texture.png"
         ).convert_alpha()
 
         level = [
