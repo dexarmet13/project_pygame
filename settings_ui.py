@@ -113,7 +113,9 @@ class SettingsUI(QWidget):
 
         self.back_button = QPushButton("Назад")
         self.set_button_stylesheet(self.back_button)
-        self.back_button.setIcon(QIcon("src/back_button_texture.png"))
+        self.back_button.setIcon(
+            QIcon("materials/button_bg/back_button_texture.png")
+        )
         self.back_button.setIconSize(QSize(34, 34))
         self.main_layout.addWidget(self.back_button, 7, 0, 1, 1)
 

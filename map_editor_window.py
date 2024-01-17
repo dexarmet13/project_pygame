@@ -103,7 +103,7 @@ class MapEditorWindow:
 
         self.bg = pygame.transform.scale(
             pygame.image.load(
-                "src/main_window_background.png"
+                "materials/backgrounds/map_editor_background.png"
             ).convert_alpha(),
             (
                 self._screen_size[0] * 0.85,
@@ -126,12 +126,12 @@ class MapEditorWindow:
 
     def load_images(self):
         texture_paths = [
-            "src/grass_ground_texture.png",
-            "src/green_ground_texture.png",
-            "src/dirt_ground_texture.png",
-            "src/rock_ground_texture.png",
-            "src/lava_ground_texture.png",
-            "src/snow_ground_texture.png",
+            "materials/textures/green_ground_texture.png",
+            "materials/textures/green_rock_texture.png",
+            "materials/textures/dirt_ground_texture.png",
+            "materials/textures/rock_ground_texture.png",
+            "materials/textures/lava_ground_texture.png",
+            "materials/textures/snow_ground_texture.png",
         ]
         texture_size = (self.cell_width, self.cell_height)
         self.images = [

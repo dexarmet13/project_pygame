@@ -26,33 +26,26 @@ class Level:
 
 class Level_01(Level):
     def __init__(self, player):
-        super().__init__(player, "src/main_window_background.png")
+        super().__init__(player, "materials/backgrounds/world_background.png")
 
         platform_image = pygame.image.load(
-            "src/snow_ground_texture.png"
+            "materials/textures/0.png"
         ).convert_alpha()
 
         level = [
             [50, 50, 350, 400],
             [50, 50, 300, 400],
-            [50, 50, 250, 400],
-            [50, 50, 500, 475],
-            [50, 50, 550, 475],
-            [50, 50, 600, 475],
-            [50, 50, 550, 275],
-            [50, 50, 600, 275],
-            [50, 50, 650, 275],
         ]
 
         for platform in level:
-            block = Platform(platform[0], platform[1], platform_image)
-            block.rect.x = platform[2]
-            block.rect.y = platform[3]
+            block = Platform(*platform, platform_image)
             self.platform_list.add(block)
 
 
 class Platform(pygame.sprite.Sprite):
-    def __init__(self, width, height, image):
+    def __init__(self, width, height, x, y, image):
         super().__init__()
         self.image = pygame.transform.scale(image, (width, height))
         self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y

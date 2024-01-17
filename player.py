@@ -8,7 +8,9 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
 
-        self.right_image = pygame.image.load("src/hero_texture.png")
+        self.right_image = pygame.image.load(
+            "materials/characters/128_lis.png"
+        )
         self.rect = self.right_image.get_rect()
         self.left_image = pygame.transform.flip(self.right_image, True, False)
 
