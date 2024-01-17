@@ -177,22 +177,40 @@ class MapEditorWindow:
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     selection_start = pygame.mouse.get_pos()
-                    if event.button == 1 and not is_deleting:
-                        selection_start = pygame.mouse.get_pos()
-                        if (
-                            fixed_area.collidepoint(pygame.mouse.get_pos())
-                            and selected_texture_index is not None
-                        ):
-                            is_selecting = True
 
-                    if event.button == 3 and not is_selecting:
-                        if fixed_area.collidepoint(pygame.mouse.get_pos()):
+                    if event.button == 1:  # Left mouse button
+                        if not is_deleting:
+                            if (
+                                fixed_area.collidepoint(selection_start)
+                                and selected_texture_index is not None
+                            ):
+                                is_selecting = True
+                            else:
+                                is_selecting = False
+                                self.selected_texture = None
+                                self.selected_texture_rect = None
+                        # No need to reset selection_start here since it will be set either way
+
+                    elif event.button == 3:  # Right mouse button
+                        if fixed_area.collidepoint(selection_start):
                             is_deleting = True
-                            start_delete_selection = pygame.mouse.get_pos()
+                            start_delete_selection = selection_start
+                        else:
+                            is_deleting = False
 
                 if event.type == pygame.MOUSEBUTTONUP:
-                    if event.button == 1 and not is_deleting:
-                        current_mouse_pos = pygame.mouse.get_pos()
+                    current_mouse_pos = pygame.mouse.get_pos()
+
+                    if event.button == 1:  # Left mouse button
+                        if (
+                            is_selecting
+                            and fixed_area.collidepoint(selection_start)
+                            and fixed_area.collidepoint(current_mouse_pos)
+                        ):
+                            self.select_cells(
+                                selection_start, current_mouse_pos
+                            )
+                        is_selecting = False
 
                         if not fixed_area.collidepoint(current_mouse_pos):
                             selected_texture_index = (
@@ -200,12 +218,10 @@ class MapEditorWindow:
                                     current_mouse_pos
                                 )
                             )
-
                             if selected_texture_index is not None:
                                 self.selected_texture = self.images[
                                     selected_texture_index
                                 ]
-
                                 self.selected_texture_rect = (
                                     self.map_editor_ui.texture_rects[
                                         selected_texture_index
@@ -215,22 +231,16 @@ class MapEditorWindow:
                                 self.selected_texture = None
                                 self.selected_texture_rect = None
 
-                        elif fixed_area.collidepoint(selection_start):
-                            is_selecting = False
+                    elif event.button == 3:
+                        if (
+                            is_deleting
+                            and fixed_area.collidepoint(start_delete_selection)
+                            and fixed_area.collidepoint(current_mouse_pos)
+                        ):
                             self.select_cells(
-                                selection_start, current_mouse_pos
+                                start_delete_selection, current_mouse_pos, True
                             )
-                    if event.button == 3 and not is_selecting:
                         is_deleting = False
-                        current_mouse_pos = pygame.mouse.get_pos()
-
-                        if fixed_area.collidepoint(current_mouse_pos):
-                            if fixed_area.collidepoint(selection_start):
-                                self.select_cells(
-                                    start_delete_selection,
-                                    current_mouse_pos,
-                                    True,
-                                )
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_F1:
