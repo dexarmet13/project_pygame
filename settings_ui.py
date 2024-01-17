@@ -94,7 +94,10 @@ class SettingsUI(QWidget):
         self.fps_limit_combo_box = QComboBox()
         self.set_combo_box_stylesheet(self.fps_limit_combo_box)
         self.fps_limit_combo_box.addItems([
-            "Без ограничений", "Ограничение 60", "Ограничение 30"
+            "Без ограничений",
+            "Ограничение 60",
+            "Ограничение 45",
+            "Ограничение 30",
         ])
         self.main_layout.addWidget(self.fps_limit_combo_box, 5, 1, 1, 2)
 
