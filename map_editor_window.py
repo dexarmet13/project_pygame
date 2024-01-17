@@ -23,6 +23,33 @@ class MapEditorUI:
         self.padding = self._screen_size[0] * 0.02
         self.cell_width = cell_size[0]
         self.cell_height = cell_size[1]
+        self.slide_rects = [
+            pygame.Rect(
+                self._screen_size[0] * 0.08,
+                self._screen_size[1] * 0.79,
+                self._screen_size[0] * 0.15,
+                self._screen_size[1] * 0.15,
+            ),
+            pygame.Rect(
+                self._screen_size[0] * 0.31,
+                self._screen_size[1] * 0.79,
+                self._screen_size[0] * 0.15,
+                self._screen_size[1] * 0.15,
+            ),
+            pygame.Rect(
+                self._screen_size[0] * 0.54,
+                self._screen_size[1] * 0.79,
+                self._screen_size[0] * 0.15,
+                self._screen_size[1] * 0.15,
+            ),
+            pygame.Rect(
+                self._screen_size[0] * 0.77,
+                self._screen_size[1] * 0.79,
+                self._screen_size[0] * 0.15,
+                self._screen_size[1] * 0.15,
+            ),
+        ]
+
         self.texture_rects = self._generate_texture_rects()
         self.GRID_LINE_COLOR = (0, 0, 0)
         self.TEXT_COLOR = (0, 0, 0)
@@ -47,6 +74,7 @@ class MapEditorUI:
         self._draw_grid_lines(5, 10)
         self._draw_text()
         self._draw_images()
+        self._draw_rects((0, 255, 0))
         screen.blit(self.editor_surf, (0, 0))
 
     def _draw_text(self):
@@ -95,8 +123,18 @@ class MapEditorUI:
                 ),
             )
 
+    def _draw_rects(self, color):
+        for rect in self.slide_rects:
+            pygame.draw.rect(self.editor_surf, color, rect)
+
     def check_texture_selection(self, mouse_pos):
         for i, rect in enumerate(self.texture_rects):
+            if rect.collidepoint(mouse_pos):
+                return i
+        return None
+
+    def check_slide_selection(self, mouse_pos):
+        for i, rect in enumerate(self.slide_rects):
             if rect.collidepoint(mouse_pos):
                 return i
         return None
@@ -108,6 +146,8 @@ class MapEditorWindow:
 
         self._screen_size = screen_size
         self.screen = pygame.display.set_mode(self._screen_size)
+
+        self.levels = []
 
         self.cell_width = int(self._screen_size[0] * 0.85 / 100 * 5 + 1)
         self.cell_height = int(self._screen_size[1] * 0.75 / 100 * 10)
@@ -179,6 +219,7 @@ class MapEditorWindow:
         is_selecting = False
         is_deleting = False
         selected_texture_index = None
+        selected_slide = None
 
         while running:
             events = pygame.event.get()
@@ -230,15 +271,27 @@ class MapEditorWindow:
                                     current_mouse_pos
                                 )
                             )
-                            if selected_texture_index is not None:
-                                self.selected_texture = self.images[
+
+                        if selected_texture_index is not None:
+                            self.selected_texture = self.images[
+                                selected_texture_index
+                            ]
+                            self.selected_texture_rect = (
+                                self.map_editor_ui.texture_rects[
                                     selected_texture_index
                                 ]
-                                self.selected_texture_rect = (
-                                    self.map_editor_ui.texture_rects[
-                                        selected_texture_index
-                                    ]
+                            )
+
+                        else:
+                            selected_slide = (
+                                self.map_editor_ui.check_slide_selection(
+                                    current_mouse_pos
                                 )
+                            )
+                            if selected_slide is not None:
+                                color = (255, 0, 0)
+                                rect = pygame.Rect(0, 0, 50, 50)
+                                pygame.draw.rect(self.screen, color, rect)
                             else:
                                 self.selected_texture = None
                                 self.selected_texture_rect = None
