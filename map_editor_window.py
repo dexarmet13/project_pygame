@@ -162,7 +162,7 @@ class MapEditorWindow:
         )
 
         is_selecting = False
-        selection_start = None
+        is_deleting = False
         selected_texture_index = None
 
         while running:
@@ -177,7 +177,7 @@ class MapEditorWindow:
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     selection_start = pygame.mouse.get_pos()
-                    if event.button == 1:
+                    if event.button == 1 and not is_deleting:
                         selection_start = pygame.mouse.get_pos()
                         if (
                             fixed_area.collidepoint(pygame.mouse.get_pos())
@@ -185,17 +185,13 @@ class MapEditorWindow:
                         ):
                             is_selecting = True
 
-                    if event.button == 3:
-                        selected_cell_pos = pygame.mouse.get_pos()
-                        if fixed_area.collidepoint(selected_cell_pos):
-                            selected_cell = self.grid_position(
-                                selected_cell_pos
-                            )
-
-                            self.selected_cells[selected_cell] = None
+                    if event.button == 3 and not is_selecting:
+                        if fixed_area.collidepoint(pygame.mouse.get_pos()):
+                            is_deleting = True
+                            start_delete_selection = pygame.mouse.get_pos()
 
                 if event.type == pygame.MOUSEBUTTONUP:
-                    if event.button == 1:
+                    if event.button == 1 and not is_deleting:
                         current_mouse_pos = pygame.mouse.get_pos()
 
                         if not fixed_area.collidepoint(current_mouse_pos):
@@ -220,6 +216,17 @@ class MapEditorWindow:
                             self.select_cells(
                                 selection_start, current_mouse_pos
                             )
+                    if event.button == 3 and not is_selecting:
+                        is_deleting = False
+                        current_mouse_pos = pygame.mouse.get_pos()
+
+                        if fixed_area.collidepoint(current_mouse_pos):
+                            if fixed_area.collidepoint(selection_start):
+                                self.select_cells(
+                                    start_delete_selection,
+                                    current_mouse_pos,
+                                    True,
+                                )
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_F1:
@@ -229,11 +236,15 @@ class MapEditorWindow:
                     elif event.key == pygame.K_ESCAPE:
                         running = False
 
-            if is_selecting:
+            if fixed_area.collidepoint(pygame.mouse.get_pos()):
                 current_mouse_pos = pygame.mouse.get_pos()
-                if fixed_area.collidepoint(current_mouse_pos):
+                if is_selecting:
                     self.highlight_selection_area(
                         selection_start, current_mouse_pos
+                    )
+                elif is_deleting:
+                    self.highlight_selection_area(
+                        start_delete_selection, current_mouse_pos
                     )
 
             if self.selected_texture_rect is not None:
@@ -261,7 +272,7 @@ class MapEditorWindow:
 
         pygame.draw.rect(self.screen, (0, 255, 0), rect, 1)
 
-    def select_cells(self, start_pos, end_pos):
+    def select_cells(self, start_pos, end_pos, delete=False):
         start_grid_pos = self.grid_position(start_pos)
         end_grid_pos = self.grid_position(end_pos)
 
@@ -275,8 +286,12 @@ class MapEditorWindow:
             ):
                 cell = (x, y)
                 if self.selected_texture is not None:
-                    self.selected_cells[cell] = self.selected_texture
-                    self.draw_texture(cell, self.selected_texture)
+                    if delete:
+                        if cell in self.selected_cells:
+                            del self.selected_cells[cell]
+                    else:
+                        self.selected_cells[cell] = self.selected_texture
+                        self.draw_texture(cell, self.selected_texture)
 
     def draw_texture(self, cell, texture):
         x, y = cell
