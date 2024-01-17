@@ -19,16 +19,38 @@ class MapEditorUI:
         self._screen_size = screen_size
         self.editor_surf = pygame.Surface(self._screen_size)
         self.bg = bg_image
-        self.images = images
-        self.texture_rects = []
+        self.images = [img for img in images]
+        self.padding = self._screen_size[0] * 0.02
         self.cell_width = cell_size[0]
         self.cell_height = cell_size[1]
+        self.texture_rects = self._generate_texture_rects()
+        self.GRID_LINE_COLOR = (0, 0, 0)
+        self.TEXT_COLOR = (0, 0, 0)
+        self.BG_COLOR = (255, 255, 255)
+
+    def _generate_texture_rects(self):
+        rects = []
+        for i, image in enumerate(self.images):
+            top = self._screen_size[1] * 0.08 * (i + 1) + self.padding * i
+            width = int(self.cell_width * 1.25)
+            height = int(self.cell_height * 1.25)
+            right = self._screen_size[0] * 0.95
+            left = right - width
+
+            rect = pygame.Rect(left, top, width, height)
+            rects.append(rect)
+        return rects
 
     def draw(self, screen):
-        self.editor_surf.fill((255, 255, 255))
+        self.editor_surf.fill(self.BG_COLOR)
         self.editor_surf.blit(self.bg, (0, 0))
+        self._draw_grid_lines(5, 10)
+        self._draw_text()
+        self._draw_images()
+        screen.blit(self.editor_surf, (0, 0))
 
-        text_surf = self.font.render("Объекты", True, (0, 0, 0))
+    def _draw_text(self):
+        text_surf = self.font.render("Объекты", True, self.TEXT_COLOR)
         text_rect = text_surf.get_rect(
             center=(
                 self._screen_size[0] * 0.85
@@ -36,49 +58,42 @@ class MapEditorUI:
                 self._screen_size[1] * 0.05,
             )
         )
+        self.editor_surf.blit(text_surf, text_rect)
 
-        for y in range(0, 101, 10):
-            for x in range(0, 101, 5):
-                pygame.draw.line(
-                    self.editor_surf,
-                    (0, 0, 0),
+    def _draw_images(self):
+        for img, rect in zip(self.images, self.texture_rects):
+            self.editor_surf.blit(
+                pygame.transform.scale(
+                    img,
                     (
-                        x * self._screen_size[0] * 0.85 / 100,
-                        y * self._screen_size[1] * 0.75 / 100,
+                        int(self.cell_width * 1.25),
+                        int(self.cell_height * 1.25),
                     ),
-                    (
-                        self._screen_size[0] * 0.85,
-                        y * self._screen_size[1] * 0.75 / 100,
-                    ),
-                )
-
-                pygame.draw.line(
-                    self.editor_surf,
-                    (0, 0, 0),
-                    (x * self._screen_size[0] * 0.85 / 100, 0),
-                    (
-                        x * self._screen_size[0] * 0.85 / 100,
-                        self._screen_size[1] * 0.75,
-                    ),
-                )
-
-        padding = self._screen_size[0] * 0.02
-
-        for i, image in enumerate(self.images):
-            scaled_image = pygame.transform.scale(
-                image, (self.cell_width * 1.25, self.cell_height * 1.25)
+                ),
+                rect,
             )
-            rect = self.editor_surf.blit(
-                scaled_image,
+
+    def _draw_grid_lines(self, interval_x, interval_y):
+        for y in range(0, 101, interval_y):
+            pygame.draw.line(
+                self.editor_surf,
+                self.GRID_LINE_COLOR,
+                (0, y * self._screen_size[1] * 0.75 / 100),
                 (
-                    self._screen_size[0] * 0.895,
-                    self._screen_size[1] * 0.08 * (i + 1) + padding * i,
+                    self._screen_size[0] * 0.85,
+                    y * self._screen_size[1] * 0.75 / 100,
                 ),
             )
-            self.texture_rects.append(rect)
-
-        self.editor_surf.blit(text_surf, text_rect)
-        screen.blit(self.editor_surf, (0, 0))
+        for x in range(0, 101, interval_x):
+            pygame.draw.line(
+                self.editor_surf,
+                self.GRID_LINE_COLOR,
+                (x * self._screen_size[0] * 0.85 / 100, 0),
+                (
+                    x * self._screen_size[0] * 0.85 / 100,
+                    self._screen_size[1] * 0.75,
+                ),
+            )
 
     def check_texture_selection(self, mouse_pos):
         for i, rect in enumerate(self.texture_rects):
@@ -296,13 +311,12 @@ class MapEditorWindow:
                 max(start_grid_pos[1], end_grid_pos[1]) + 1,
             ):
                 cell = (x, y)
-                if self.selected_texture is not None:
-                    if delete:
-                        if cell in self.selected_cells:
-                            del self.selected_cells[cell]
-                    else:
-                        self.selected_cells[cell] = self.selected_texture
-                        self.draw_texture(cell, self.selected_texture)
+                if delete:
+                    if cell in self.selected_cells:
+                        del self.selected_cells[cell]
+                else:
+                    self.selected_cells[cell] = self.selected_texture
+                    self.draw_texture(cell, self.selected_texture)
 
     def draw_texture(self, cell, texture):
         x, y = cell
