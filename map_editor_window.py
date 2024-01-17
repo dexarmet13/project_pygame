@@ -178,7 +178,7 @@ class MapEditorWindow:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     selection_start = pygame.mouse.get_pos()
 
-                    if event.button == 1:  # Left mouse button
+                    if event.button == 1:
                         if not is_deleting:
                             if (
                                 fixed_area.collidepoint(selection_start)
@@ -187,11 +187,8 @@ class MapEditorWindow:
                                 is_selecting = True
                             else:
                                 is_selecting = False
-                                self.selected_texture = None
-                                self.selected_texture_rect = None
-                        # No need to reset selection_start here since it will be set either way
 
-                    elif event.button == 3:  # Right mouse button
+                    elif event.button == 3:
                         if fixed_area.collidepoint(selection_start):
                             is_deleting = True
                             start_delete_selection = selection_start
@@ -201,7 +198,7 @@ class MapEditorWindow:
                 if event.type == pygame.MOUSEBUTTONUP:
                     current_mouse_pos = pygame.mouse.get_pos()
 
-                    if event.button == 1:  # Left mouse button
+                    if event.button == 1:
                         if (
                             is_selecting
                             and fixed_area.collidepoint(selection_start)
