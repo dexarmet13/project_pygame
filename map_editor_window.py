@@ -147,7 +147,7 @@ class MapEditorWindow:
         self._screen_size = screen_size
         self.screen = pygame.display.set_mode(self._screen_size)
 
-        self.levels = []
+        self.levels = [None] * 4
 
         self.cell_width = int(self._screen_size[0] * 0.85 / 100 * 5 + 1)
         self.cell_height = int(self._screen_size[1] * 0.75 / 100 * 10)
@@ -216,10 +216,13 @@ class MapEditorWindow:
             self._screen_size[1] * 0.75,
         )
 
+        texture_places = [None] * 4
+
         is_selecting = False
         is_deleting = False
         selected_texture_index = None
-        selected_slide = None
+        current_selected_slide = None
+        previous_selected_slide = 0
 
         while running:
             events = pygame.event.get()
@@ -283,15 +286,43 @@ class MapEditorWindow:
                             )
 
                         else:
-                            selected_slide = (
+                            current_selected_slide = (
                                 self.map_editor_ui.check_slide_selection(
                                     current_mouse_pos
                                 )
                             )
-                            if selected_slide is not None:
-                                color = (255, 0, 0)
-                                rect = pygame.Rect(0, 0, 50, 50)
-                                pygame.draw.rect(self.screen, color, rect)
+
+                            if (
+                                current_selected_slide is not None
+                                and current_selected_slide
+                                != previous_selected_slide
+                            ):
+                                surf_of_cell = {}
+
+                                for cell, surf in self.selected_cells.items():
+                                    surf_of_cell[cell] = surf
+
+                                if previous_selected_slide is not None:
+                                    print("Clearing")
+                                    texture_places[previous_selected_slide] = (
+                                        surf_of_cell.copy()
+                                    )
+
+                                    self.clear_all_cells()
+                                    surf_of_cell.clear()
+
+                                    if (
+                                        texture_places[current_selected_slide]
+                                        is not None
+                                    ):
+                                        self.selected_cells = texture_places[
+                                            current_selected_slide
+                                        ]
+
+                                previous_selected_slide = (
+                                    current_selected_slide
+                                )
+
                             else:
                                 self.selected_texture = None
                                 self.selected_texture_rect = None
@@ -395,3 +426,25 @@ class MapEditorWindow:
 
         for cell in cells_to_delete:
             del self.selected_cells[cell]
+
+    def clear_all_cells(self):
+        for cell in self.selected_cells:
+            self.selected_cells[cell] = None
+
+    def save_textures(self, selected_slide):
+        image_path_of_cell = {}
+
+        for cell, value in self.selected_cells.items():
+            for (
+                path,
+                surf,
+            ) in PlatformTexture._cache.items():
+                if value == surf:
+                    if path not in image_path_of_cell:
+                        image_path_of_cell[path] = [cell]
+                    else:
+                        image_path_of_cell[path] += [cell]
+
+        self.levels[selected_slide] = image_path_of_cell
+
+        image_path_of_cell.clear()
