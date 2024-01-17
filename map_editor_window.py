@@ -303,7 +303,6 @@ class MapEditorWindow:
                                     surf_of_cell[cell] = surf
 
                                 if previous_selected_slide is not None:
-                                    print("Clearing")
                                     texture_places[previous_selected_slide] = (
                                         surf_of_cell.copy()
                                     )
