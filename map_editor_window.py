@@ -211,6 +211,10 @@ class MapEditorWindow:
                                         selected_texture_index
                                     ]
                                 )
+                            else:
+                                self.selected_texture = None
+                                self.selected_texture_rect = None
+
                         elif fixed_area.collidepoint(selection_start):
                             is_selecting = False
                             self.select_cells(
