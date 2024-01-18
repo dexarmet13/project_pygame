@@ -322,7 +322,6 @@ class MapEditorWindow:
                                     current_selected_slide
                                 )
 
-                            else:
                                 self.selected_texture = None
                                 self.selected_texture_rect = None
 
