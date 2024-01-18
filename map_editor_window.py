@@ -189,6 +189,8 @@ class MapEditorWindow:
         self.selected_texture = None
         self.selected_texture_rect = None
 
+        self.current_selected_slide = 0
+
         self.load_images()
 
         self.map_editor_ui = MapEditorUI(
@@ -242,7 +244,6 @@ class MapEditorWindow:
         is_selecting = False
         is_deleting = False
         selected_texture_index = None
-        current_selected_slide = None
         previous_selected_slide = 0
 
         while running:
@@ -307,15 +308,15 @@ class MapEditorWindow:
                             )
 
                         else:
-                            current_selected_slide = (
+                            self.current_selected_slide = (
                                 self.map_editor_ui.check_slide_selection(
                                     current_mouse_pos
                                 )
                             )
 
                             if (
-                                current_selected_slide is not None
-                                and current_selected_slide
+                                self.current_selected_slide is not None
+                                and self.current_selected_slide
                                 != previous_selected_slide
                             ):
                                 surf_of_cell = {}
@@ -332,15 +333,17 @@ class MapEditorWindow:
                                     surf_of_cell.clear()
 
                                     if (
-                                        texture_places[current_selected_slide]
+                                        texture_places[
+                                            self.current_selected_slide
+                                        ]
                                         is not None
                                     ):
                                         self.selected_cells = texture_places[
-                                            current_selected_slide
+                                            self.current_selected_slide
                                         ]
 
                                 previous_selected_slide = (
-                                    current_selected_slide
+                                    self.current_selected_slide
                                 )
 
                                 self.selected_texture = None
@@ -380,6 +383,16 @@ class MapEditorWindow:
                 border_color = (255, 0, 0)
                 self.draw_border(
                     self.screen, self.selected_texture_rect, border_color
+                )
+
+            if self.current_selected_slide is not None:
+                border_color = (255, 0, 0)
+                self.draw_border(
+                    self.screen,
+                    self.map_editor_ui.slide_rects[
+                        self.current_selected_slide
+                    ],
+                    border_color,
                 )
 
             pygame.display.flip()
