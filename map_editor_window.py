@@ -1,4 +1,5 @@
 import pygame
+import numpy as np
 
 
 class PlatformTexture:
@@ -15,16 +16,29 @@ class PlatformTexture:
 
 class MapEditorUI:
     def __init__(
-        self, screen_size, font, bg_image, images, cell_size, slide_image
+        self,
+        screen_size,
+        font,
+        bg_image,
+        images,
+        cell_size,
+        slide_image,
     ):
         self._font = font
+
         self._screen_size = screen_size
         self.editor_surf = pygame.Surface(self._screen_size)
+
         self.bg = bg_image
         self.images = [img for img in images]
+
         self.padding = self._screen_size[0] * 0.02
+        self.interval_x = 5
+        self.interval_y = 7.7
+
         self.cell_width = cell_size[0]
         self.cell_height = cell_size[1]
+
         self.slide_image = pygame.transform.scale(
             slide_image,
             (
@@ -35,6 +49,7 @@ class MapEditorUI:
         self.slide_rects = []
 
         self.texture_rects = self._generate_texture_rects()
+
         self.GRID_LINE_COLOR = (0, 0, 0)
         self.TEXT_COLOR = (0, 0, 0)
         self.BG_COLOR = (255, 255, 255)
@@ -54,8 +69,8 @@ class MapEditorUI:
 
     def draw(self, screen):
         self.editor_surf.fill(self.BG_COLOR)
-        self.editor_surf.blit(self.bg, (0, 0))
-        self._draw_grid_lines(5, 10)
+        self.editor_surf.blit(self.bg, (self._screen_size[0] * 0.15, 0))
+        self._draw_grid_lines(self.interval_x, self.interval_y)
         self._draw_text()
         self._draw_images()
         self._draw_slide_images()
@@ -73,26 +88,30 @@ class MapEditorUI:
         self.editor_surf.blit(text_surf, text_rect)
 
     def _draw_grid_lines(self, interval_x, interval_y):
-        for y in range(0, 101, interval_y):
+        print(
+            self._screen_size[0] * 0.70 * interval_x / 100,
+            self._screen_size[1] * 0.75 * interval_y / 100,
+        )
+        for y in np.arange(0, interval_y * 14, interval_y):
+            line_y = y * self._screen_size[1] * 0.75 / 100
             pygame.draw.line(
                 self.editor_surf,
                 self.GRID_LINE_COLOR,
-                (0, y * self._screen_size[1] * 0.75 / 100),
-                (
-                    self._screen_size[0] * 0.85,
-                    y * self._screen_size[1] * 0.75 / 100,
-                ),
+                (self._screen_size[0] * 0.15, line_y),
+                (self._screen_size[0] * 0.85, line_y),
                 3,
             )
-        for x in range(0, 101, interval_x):
+
+        for x in np.arange(0, interval_x * 21, interval_x):
+            line_x = (
+                self._screen_size[0] * 0.15
+                + x * self._screen_size[0] * 0.70 / 100
+            )
             pygame.draw.line(
                 self.editor_surf,
                 self.GRID_LINE_COLOR,
-                (x * self._screen_size[0] * 0.85 / 100, 0),
-                (
-                    x * self._screen_size[0] * 0.85 / 100,
-                    self._screen_size[1] * 0.75,
-                ),
+                (line_x, 0),
+                (line_x, self._screen_size[1] * 0.75),
                 3,
             )
 
@@ -165,19 +184,26 @@ class MapEditorWindow:
 
         self.levels = [None] * 4
 
-        self.cell_width = int(self._screen_size[0] * 0.85 / 100 * 5 + 1)
-        self.cell_height = int(self._screen_size[1] * 0.75 / 100 * 10)
+        self.cell_width = self._screen_size[0] * 0.70 * 0.05
+        self.cell_height = self._screen_size[1] * 0.75 * 0.077
 
         self.selected_cells = {}
 
         self._font = pygame.font.Font(None, 50)
+
+        self.fixed_area = pygame.Rect(
+            self._screen_size[0] * 0.15,
+            0,
+            self._screen_size[0] * 0.70,
+            self._screen_size[1] * 0.75,
+        )
 
         self.bg = pygame.transform.scale(
             pygame.image.load(
                 "materials/backgrounds/map_editor_background.png"
             ).convert_alpha(),
             (
-                self._screen_size[0] * 0.85,
+                self._screen_size[0] * 0.70,
                 self._screen_size[1] * 0.75,
             ),
         )
@@ -205,7 +231,7 @@ class MapEditorWindow:
     def load_images(self):
         texture_paths = [
             "materials/textures/green_ground_texture.png",
-            "materials/textures/green_rock_texture.png",
+            "materials/textures/colored_ground_texture.png",
             "materials/textures/dirt_ground_texture.png",
             "materials/textures/rock_ground_texture.png",
             "materials/textures/lava_ground_texture.png",
@@ -232,13 +258,6 @@ class MapEditorWindow:
         running = True
         flag_soundtrack = False
 
-        fixed_area = pygame.Rect(
-            0,
-            0,
-            self._screen_size[0] * 0.85,
-            self._screen_size[1] * 0.75,
-        )
-
         texture_places = [None] * 4
 
         is_selecting = False
@@ -262,7 +281,7 @@ class MapEditorWindow:
                     if event.button == 1:
                         if not is_deleting:
                             if (
-                                fixed_area.collidepoint(selection_start)
+                                self.fixed_area.collidepoint(selection_start)
                                 and selected_texture_index is not None
                             ):
                                 is_selecting = True
@@ -270,7 +289,7 @@ class MapEditorWindow:
                                 is_selecting = False
 
                     elif event.button == 3:
-                        if fixed_area.collidepoint(selection_start):
+                        if self.fixed_area.collidepoint(selection_start):
                             is_deleting = True
                             start_delete_selection = selection_start
                         else:
@@ -282,15 +301,15 @@ class MapEditorWindow:
                     if event.button == 1:
                         if (
                             is_selecting
-                            and fixed_area.collidepoint(selection_start)
-                            and fixed_area.collidepoint(current_mouse_pos)
+                            and self.fixed_area.collidepoint(selection_start)
+                            and self.fixed_area.collidepoint(current_mouse_pos)
                         ):
                             self.select_cells(
                                 selection_start, current_mouse_pos
                             )
                         is_selecting = False
 
-                        if not fixed_area.collidepoint(current_mouse_pos):
+                        if not self.fixed_area.collidepoint(current_mouse_pos):
                             selected_texture_index = (
                                 self.map_editor_ui.check_texture_selection(
                                     current_mouse_pos
@@ -307,7 +326,7 @@ class MapEditorWindow:
                                 ]
                             )
 
-                        else:
+                        elif ():
                             self.current_selected_slide = (
                                 self.map_editor_ui.check_slide_selection(
                                     current_mouse_pos
@@ -345,15 +364,17 @@ class MapEditorWindow:
                                 previous_selected_slide = (
                                     self.current_selected_slide
                                 )
-
-                                self.selected_texture = None
-                                self.selected_texture_rect = None
+                        else:
+                            self.selected_texture = None
+                            self.selected_texture_rect = None
 
                     elif event.button == 3:
                         if (
                             is_deleting
-                            and fixed_area.collidepoint(start_delete_selection)
-                            and fixed_area.collidepoint(current_mouse_pos)
+                            and self.fixed_area.collidepoint(
+                                start_delete_selection
+                            )
+                            and self.fixed_area.collidepoint(current_mouse_pos)
                         ):
                             self.select_cells(
                                 start_delete_selection, current_mouse_pos, True
@@ -368,7 +389,7 @@ class MapEditorWindow:
                     elif event.key == pygame.K_ESCAPE:
                         running = False
 
-            if fixed_area.collidepoint(pygame.mouse.get_pos()):
+            if self.fixed_area.collidepoint(pygame.mouse.get_pos()):
                 current_mouse_pos = pygame.mouse.get_pos()
                 if is_selecting:
                     self.highlight_selection_area(
@@ -400,8 +421,12 @@ class MapEditorWindow:
         pygame.quit()
 
     def grid_position(self, screen_position):
-        grid_x = screen_position[0] // self.cell_width
-        grid_y = screen_position[1] // self.cell_height
+        grid_x = int(
+            (screen_position[0] - self._screen_size[0] * 0.15)
+            / self.cell_width
+        )
+        grid_y = int(screen_position[1] / self.cell_height)
+        print(self.cell_width, self.cell_height)
         return grid_x, grid_y
 
     def highlight_selection_area(self, start_pos, current_pos):
@@ -437,7 +462,7 @@ class MapEditorWindow:
     def draw_texture(self, cell, texture):
         x, y = cell
         cell_rect = pygame.Rect(
-            x * self.cell_width - 1,
+            x * self.cell_width + self._screen_size[0] * 0.15,
             y * self.cell_height,
             self.cell_width,
             self.cell_height,
