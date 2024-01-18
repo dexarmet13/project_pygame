@@ -14,8 +14,10 @@ class PlatformTexture:
 
 
 class MapEditorUI:
-    def __init__(self, screen_size, font, bg_image, images, cell_size):
-        self.font = font
+    def __init__(
+        self, screen_size, font, bg_image, images, cell_size, slide_image
+    ):
+        self._font = font
         self._screen_size = screen_size
         self.editor_surf = pygame.Surface(self._screen_size)
         self.bg = bg_image
@@ -23,32 +25,14 @@ class MapEditorUI:
         self.padding = self._screen_size[0] * 0.02
         self.cell_width = cell_size[0]
         self.cell_height = cell_size[1]
-        self.slide_rects = [
-            pygame.Rect(
-                self._screen_size[0] * 0.08,
-                self._screen_size[1] * 0.79,
+        self.slide_image = pygame.transform.scale(
+            slide_image,
+            (
                 self._screen_size[0] * 0.15,
                 self._screen_size[1] * 0.15,
             ),
-            pygame.Rect(
-                self._screen_size[0] * 0.31,
-                self._screen_size[1] * 0.79,
-                self._screen_size[0] * 0.15,
-                self._screen_size[1] * 0.15,
-            ),
-            pygame.Rect(
-                self._screen_size[0] * 0.54,
-                self._screen_size[1] * 0.79,
-                self._screen_size[0] * 0.15,
-                self._screen_size[1] * 0.15,
-            ),
-            pygame.Rect(
-                self._screen_size[0] * 0.77,
-                self._screen_size[1] * 0.79,
-                self._screen_size[0] * 0.15,
-                self._screen_size[1] * 0.15,
-            ),
-        ]
+        )
+        self.slide_rects = []
 
         self.texture_rects = self._generate_texture_rects()
         self.GRID_LINE_COLOR = (0, 0, 0)
@@ -74,11 +58,11 @@ class MapEditorUI:
         self._draw_grid_lines(5, 10)
         self._draw_text()
         self._draw_images()
-        self._draw_rects((0, 255, 0))
+        self._draw_slide_images()
         screen.blit(self.editor_surf, (0, 0))
 
     def _draw_text(self):
-        text_surf = self.font.render("Объекты", True, self.TEXT_COLOR)
+        text_surf = self._font.render("Объекты", True, self.TEXT_COLOR)
         text_rect = text_surf.get_rect(
             center=(
                 self._screen_size[0] * 0.85
@@ -87,6 +71,30 @@ class MapEditorUI:
             )
         )
         self.editor_surf.blit(text_surf, text_rect)
+
+    def _draw_grid_lines(self, interval_x, interval_y):
+        for y in range(0, 101, interval_y):
+            pygame.draw.line(
+                self.editor_surf,
+                self.GRID_LINE_COLOR,
+                (0, y * self._screen_size[1] * 0.75 / 100),
+                (
+                    self._screen_size[0] * 0.85,
+                    y * self._screen_size[1] * 0.75 / 100,
+                ),
+                3,
+            )
+        for x in range(0, 101, interval_x):
+            pygame.draw.line(
+                self.editor_surf,
+                self.GRID_LINE_COLOR,
+                (x * self._screen_size[0] * 0.85 / 100, 0),
+                (
+                    x * self._screen_size[0] * 0.85 / 100,
+                    self._screen_size[1] * 0.75,
+                ),
+                3,
+            )
 
     def _draw_images(self):
         for img, rect in zip(self.images, self.texture_rects):
@@ -101,31 +109,39 @@ class MapEditorUI:
                 rect,
             )
 
-    def _draw_grid_lines(self, interval_x, interval_y):
-        for y in range(0, 101, interval_y):
-            pygame.draw.line(
-                self.editor_surf,
-                self.GRID_LINE_COLOR,
-                (0, y * self._screen_size[1] * 0.75 / 100),
-                (
-                    self._screen_size[0] * 0.85,
-                    y * self._screen_size[1] * 0.75 / 100,
-                ),
-            )
-        for x in range(0, 101, interval_x):
-            pygame.draw.line(
-                self.editor_surf,
-                self.GRID_LINE_COLOR,
-                (x * self._screen_size[0] * 0.85 / 100, 0),
-                (
-                    x * self._screen_size[0] * 0.85 / 100,
-                    self._screen_size[1] * 0.75,
-                ),
-            )
+    def _draw_slide_images(self):
+        image_positions = [
+            (
+                self._screen_size[0] * 0.08,
+                self._screen_size[1] * 0.79,
+            ),
+            (
+                self._screen_size[0] * 0.31,
+                self._screen_size[1] * 0.79,
+            ),
+            (
+                self._screen_size[0] * 0.54,
+                self._screen_size[1] * 0.79,
+            ),
+            (
+                self._screen_size[0] * 0.77,
+                self._screen_size[1] * 0.79,
+            ),
+        ]
+        for i, position in enumerate(image_positions):
+            image_rect = self.slide_image.get_rect()
+            image_rect.topleft = position
 
-    def _draw_rects(self, color):
-        for rect in self.slide_rects:
-            pygame.draw.rect(self.editor_surf, color, rect)
+            self.slide_rects.append(image_rect)
+
+            text = f"Слайд {i + 1}"
+            text_color = pygame.Color("white")
+            text_surface = self._font.render(text, True, text_color)
+
+            text_rect = text_surface.get_rect(center=image_rect.center)
+
+            self.editor_surf.blit(self.slide_image, image_rect)
+            self.editor_surf.blit(text_surface, text_rect)
 
     def check_texture_selection(self, mouse_pos):
         for i, rect in enumerate(self.texture_rects):
@@ -154,7 +170,7 @@ class MapEditorWindow:
 
         self.selected_cells = {}
 
-        self._font = pygame.font.Font(None, 46)
+        self._font = pygame.font.Font(None, 50)
 
         self.bg = pygame.transform.scale(
             pygame.image.load(
@@ -165,6 +181,10 @@ class MapEditorWindow:
                 self._screen_size[1] * 0.75,
             ),
         )
+
+        self.slide_image = pygame.image.load(
+            "materials/button_bg/slide_button.png"
+        ).convert_alpha()
 
         self.selected_texture = None
         self.selected_texture_rect = None
@@ -177,6 +197,7 @@ class MapEditorWindow:
             self.bg,
             self.images,
             (self.cell_width, self.cell_height),
+            self.slide_image,
         )
 
     def load_images(self):
