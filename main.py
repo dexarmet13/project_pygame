@@ -19,10 +19,10 @@ class MainWindow(QMainWindow):
     def __init__(self):
         self._images = {
             "main_window_background": QPixmap(
-                "src/main_window_background.png"
+                "materials/backgrounds/main_background.png"
             ),
             "settings_window_background": QPixmap(
-                "src/settings_window_background.jpg"
+                "materials/backgrounds/settings_background.jpg"
             ),
         }
 
@@ -44,15 +44,18 @@ class MainWindow(QMainWindow):
 
         self.welcome_window.settings_button.clicked.connect(self.settings)
         self.set_button_stylesheet(
-            self.welcome_window.settings_button, "src/buttons_texture.png"
+            self.welcome_window.settings_button,
+            "materials/button_bg/buttons_texture.png",
         )
         self.welcome_window.play_button.clicked.connect(self.play)
         self.set_button_stylesheet(
-            self.welcome_window.play_button, "src/play_button_texture.png"
+            self.welcome_window.play_button,
+            "materials/button_bg/buttons_texture.png",
         )
         self.welcome_window.map_editor.clicked.connect(self.edit_map)
         self.set_button_stylesheet(
-            self.welcome_window.map_editor, "src/buttons_texture.png"
+            self.welcome_window.map_editor,
+            "materials/button_bg/buttons_texture.png",
         )
 
         self.main_stacked_widget.addWidget(self.welcome_window)
@@ -105,8 +108,7 @@ class MainWindow(QMainWindow):
             palette = self.palette()
             palette.setBrush(self.backgroundRole(), QBrush(pixmap))
             self.setPalette(palette)
-        else:
-            print(f"Image key not found: {image_key}")
+        return False
 
     def set_button_stylesheet(self, button, image_path):
         button.setFixedSize(QSize(190, 126))
@@ -129,7 +131,6 @@ class MainWindow(QMainWindow):
             else:
                 self.resize(pixmap_size.width(), pixmap_size.height())
             return True
-        print(f"Image key not found: {image_key}")
         return False
 
     def settings(self):

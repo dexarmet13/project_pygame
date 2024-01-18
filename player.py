@@ -5,10 +5,12 @@ from const import *
 
 
 class Player(pygame.sprite.Sprite):
+    RIGHT_IMAGE_PATH = "materials/characters/128_lis.png"
+
     def __init__(self):
         super().__init__()
 
-        self.right_image = pygame.image.load("src/hero_texture.png")
+        self.right_image = pygame.image.load(Player.RIGHT_IMAGE_PATH)
         self.rect = self.right_image.get_rect()
         self.left_image = pygame.transform.flip(self.right_image, True, False)
 
@@ -21,36 +23,10 @@ class Player(pygame.sprite.Sprite):
 
         self.facing_right = True
 
-        self._initialize_animations()
-        self._update_display_size()
-
-        # delayAnim= []
-        # for anim in ANIMATION_RIGHT:
-        #     delayAnim.append((anim, ANIMATION_FPS))
-        # self.delayAnimRight = pyganim.PygAnimation(delayAnim)
-        # self.delayAnimRight.play()
-        # delayAnim = []
-        # for anim in ANIMATION_LEFT:
-        #     delayAnim.append((anim, ANIMATION_FPS))
-        # self.delayAnimLeft = pyganim.PygAnimation(delayAnim)
-        # self.delayAnimLeft.play()
-        #
-        # self.delayAnimStay = pyganim.PygAnimation(ANIMATION_STAY)
-        # self.delayAnimStay.play()
-        # self.delayAnimStay.blit(self.image, (0, 0))
-        #
-        # self.boltAnimJumpLeft = pyganim.PygAnimation(ANIMATION_JUMP_LEFT)
-        # self.boltAnimJumpLeft.play()
-        #
-        # self.boltAnimJumpRight = pyganim.PygAnimation(ANIMATION_JUMP_RIGHT)
-        # self.boltAnimJumpRight.play()
-        #
-        # self.boltAnimJump = pyganim.PygAnimation(ANIMATION_JUMP)
-        # self.boltAnimJump.play()
+        self.display_size = pygame.display.get_surface().get_size()
 
     def update(self):
         self._calc_grav()
-        self._update_display_size()
 
         self.rect.x += self.change_x
         self._handle_horizontal_collisions()
@@ -60,9 +36,6 @@ class Player(pygame.sprite.Sprite):
 
     def _initialize_animations(self):
         pass
-
-    def _update_display_size(self):
-        self.display_size = pygame.display.get_surface().get_size()
 
     def _calc_grav(self):
         if self.change_y == 0:
@@ -119,40 +92,12 @@ class Player(pygame.sprite.Sprite):
         if self.facing_right:
             self.image = self.left_image
             self.facing_right = False
-            # self.move_change_image(False, True)
 
     def go_right(self):
         self.change_x = MOVE_SPEED
         if not self.facing_right:
             self.image = self.right_image
             self.facing_right = True
-            # self.move_change_image(True)
 
     def stop(self):
         self.change_x = 0
-        # self.move_change_image()
-
-    # def move_change_image(self, right=False, left=False, up=False, stop=False):
-    #     pass
-    # if up:
-    #     self.image.fill(pygame.Color(COLOR))
-    #     self.boltAnimJump.blit(self.image, (0, 0))
-    #
-    # if left:
-    #     self.image.fill(pygame.Color(COLOR))
-    #     if up:
-    #         self.boltAnimJumpLeft.blit(self.image, (0, 0))
-    #     else:
-    #         self.delayAnimLeft.blit(self.image, (0, 0))
-    #
-    # if right:
-    #     self.image.fill(pygame.Color(COLOR))
-    #     if up:
-    #         self.boltAnimJumpRight.blit(self.image, (0, 0))
-    #     else:
-    #         self.delayAnimRight.blit(self.image, (0, 0))
-    #
-    # if not (left or right):
-    #     if not up:
-    #         self.image.fill(pygame.Color(COLOR))
-    #         self.boltAnimStay.blit(self.image, (0, 0))

@@ -14,21 +14,55 @@ class PlatformTexture:
 
 
 class MapEditorUI:
-    def __init__(self, screen_size, font, bg_image, images, cell_size):
-        self.font = font
+    def __init__(
+        self, screen_size, font, bg_image, images, cell_size, slide_image
+    ):
+        self._font = font
         self._screen_size = screen_size
         self.editor_surf = pygame.Surface(self._screen_size)
         self.bg = bg_image
-        self.images = images
-        self.texture_rects = []
+        self.images = [img for img in images]
+        self.padding = self._screen_size[0] * 0.02
         self.cell_width = cell_size[0]
         self.cell_height = cell_size[1]
+        self.slide_image = pygame.transform.scale(
+            slide_image,
+            (
+                self._screen_size[0] * 0.15,
+                self._screen_size[1] * 0.15,
+            ),
+        )
+        self.slide_rects = []
+
+        self.texture_rects = self._generate_texture_rects()
+        self.GRID_LINE_COLOR = (0, 0, 0)
+        self.TEXT_COLOR = (0, 0, 0)
+        self.BG_COLOR = (255, 255, 255)
+
+    def _generate_texture_rects(self):
+        rects = []
+        for i, image in enumerate(self.images):
+            top = self._screen_size[1] * 0.08 * (i + 1) + self.padding * i
+            width = int(self.cell_width * 1.25)
+            height = int(self.cell_height * 1.25)
+            right = self._screen_size[0] * 0.95
+            left = right - width
+
+            rect = pygame.Rect(left, top, width, height)
+            rects.append(rect)
+        return rects
 
     def draw(self, screen):
-        self.editor_surf.fill((255, 255, 255))
+        self.editor_surf.fill(self.BG_COLOR)
         self.editor_surf.blit(self.bg, (0, 0))
+        self._draw_grid_lines(5, 10)
+        self._draw_text()
+        self._draw_images()
+        self._draw_slide_images()
+        screen.blit(self.editor_surf, (0, 0))
 
-        text_surf = self.font.render("Объекты", True, (0, 0, 0))
+    def _draw_text(self):
+        text_surf = self._font.render("Объекты", True, self.TEXT_COLOR)
         text_rect = text_surf.get_rect(
             center=(
                 self._screen_size[0] * 0.85
@@ -36,52 +70,87 @@ class MapEditorUI:
                 self._screen_size[1] * 0.05,
             )
         )
-
-        for y in range(0, 101, 10):
-            for x in range(0, 101, 5):
-                pygame.draw.line(
-                    self.editor_surf,
-                    (0, 0, 0),
-                    (
-                        x * self._screen_size[0] * 0.85 / 100,
-                        y * self._screen_size[1] * 0.75 / 100,
-                    ),
-                    (
-                        self._screen_size[0] * 0.85,
-                        y * self._screen_size[1] * 0.75 / 100,
-                    ),
-                )
-
-                pygame.draw.line(
-                    self.editor_surf,
-                    (0, 0, 0),
-                    (x * self._screen_size[0] * 0.85 / 100, 0),
-                    (
-                        x * self._screen_size[0] * 0.85 / 100,
-                        self._screen_size[1] * 0.75,
-                    ),
-                )
-
-        padding = self._screen_size[0] * 0.02
-
-        for i, image in enumerate(self.images):
-            scaled_image = pygame.transform.scale(
-                image, (self.cell_width * 1.25, self.cell_height * 1.25)
-            )
-            rect = self.editor_surf.blit(
-                scaled_image,
-                (
-                    self._screen_size[0] * 0.895,
-                    self._screen_size[1] * 0.08 * (i + 1) + padding * i,
-                ),
-            )
-            self.texture_rects.append(rect)
-
         self.editor_surf.blit(text_surf, text_rect)
-        screen.blit(self.editor_surf, (0, 0))
+
+    def _draw_grid_lines(self, interval_x, interval_y):
+        for y in range(0, 101, interval_y):
+            pygame.draw.line(
+                self.editor_surf,
+                self.GRID_LINE_COLOR,
+                (0, y * self._screen_size[1] * 0.75 / 100),
+                (
+                    self._screen_size[0] * 0.85,
+                    y * self._screen_size[1] * 0.75 / 100,
+                ),
+                3,
+            )
+        for x in range(0, 101, interval_x):
+            pygame.draw.line(
+                self.editor_surf,
+                self.GRID_LINE_COLOR,
+                (x * self._screen_size[0] * 0.85 / 100, 0),
+                (
+                    x * self._screen_size[0] * 0.85 / 100,
+                    self._screen_size[1] * 0.75,
+                ),
+                3,
+            )
+
+    def _draw_images(self):
+        for img, rect in zip(self.images, self.texture_rects):
+            self.editor_surf.blit(
+                pygame.transform.scale(
+                    img,
+                    (
+                        int(self.cell_width * 1.25),
+                        int(self.cell_height * 1.25),
+                    ),
+                ),
+                rect,
+            )
+
+    def _draw_slide_images(self):
+        image_positions = [
+            (
+                self._screen_size[0] * 0.08,
+                self._screen_size[1] * 0.79,
+            ),
+            (
+                self._screen_size[0] * 0.31,
+                self._screen_size[1] * 0.79,
+            ),
+            (
+                self._screen_size[0] * 0.54,
+                self._screen_size[1] * 0.79,
+            ),
+            (
+                self._screen_size[0] * 0.77,
+                self._screen_size[1] * 0.79,
+            ),
+        ]
+        for i, position in enumerate(image_positions):
+            image_rect = self.slide_image.get_rect()
+            image_rect.topleft = position
+
+            self.slide_rects.append(image_rect)
+
+            text = f"Слайд {i + 1}"
+            text_color = pygame.Color("white")
+            text_surface = self._font.render(text, True, text_color)
+
+            text_rect = text_surface.get_rect(center=image_rect.center)
+
+            self.editor_surf.blit(self.slide_image, image_rect)
+            self.editor_surf.blit(text_surface, text_rect)
 
     def check_texture_selection(self, mouse_pos):
         for i, rect in enumerate(self.texture_rects):
+            if rect.collidepoint(mouse_pos):
+                return i
+        return None
+
+    def check_slide_selection(self, mouse_pos):
+        for i, rect in enumerate(self.slide_rects):
             if rect.collidepoint(mouse_pos):
                 return i
         return None
@@ -94,16 +163,18 @@ class MapEditorWindow:
         self._screen_size = screen_size
         self.screen = pygame.display.set_mode(self._screen_size)
 
+        self.levels = [None] * 4
+
         self.cell_width = int(self._screen_size[0] * 0.85 / 100 * 5 + 1)
         self.cell_height = int(self._screen_size[1] * 0.75 / 100 * 10)
 
         self.selected_cells = {}
 
-        self._font = pygame.font.Font(None, 46)
+        self._font = pygame.font.Font(None, 50)
 
         self.bg = pygame.transform.scale(
             pygame.image.load(
-                "src/main_window_background.png"
+                "materials/backgrounds/map_editor_background.png"
             ).convert_alpha(),
             (
                 self._screen_size[0] * 0.85,
@@ -111,8 +182,14 @@ class MapEditorWindow:
             ),
         )
 
+        self.slide_image = pygame.image.load(
+            "materials/button_bg/slide_button.png"
+        ).convert_alpha()
+
         self.selected_texture = None
         self.selected_texture_rect = None
+
+        self.current_selected_slide = 0
 
         self.load_images()
 
@@ -122,16 +199,17 @@ class MapEditorWindow:
             self.bg,
             self.images,
             (self.cell_width, self.cell_height),
+            self.slide_image,
         )
 
     def load_images(self):
         texture_paths = [
-            "src/grass_ground_texture.png",
-            "src/green_ground_texture.png",
-            "src/dirt_ground_texture.png",
-            "src/rock_ground_texture.png",
-            "src/lava_ground_texture.png",
-            "src/snow_ground_texture.png",
+            "materials/textures/green_ground_texture.png",
+            "materials/textures/green_rock_texture.png",
+            "materials/textures/dirt_ground_texture.png",
+            "materials/textures/rock_ground_texture.png",
+            "materials/textures/lava_ground_texture.png",
+            "materials/textures/snow_ground_texture.png",
         ]
         texture_size = (self.cell_width, self.cell_height)
         self.images = [
@@ -161,9 +239,12 @@ class MapEditorWindow:
             self._screen_size[1] * 0.75,
         )
 
+        texture_places = [None] * 4
+
         is_selecting = False
         is_deleting = False
         selected_texture_index = None
+        previous_selected_slide = 0
 
         while running:
             events = pygame.event.get()
@@ -215,16 +296,56 @@ class MapEditorWindow:
                                     current_mouse_pos
                                 )
                             )
-                            if selected_texture_index is not None:
-                                self.selected_texture = self.images[
+
+                        if selected_texture_index is not None:
+                            self.selected_texture = self.images[
+                                selected_texture_index
+                            ]
+                            self.selected_texture_rect = (
+                                self.map_editor_ui.texture_rects[
                                     selected_texture_index
                                 ]
-                                self.selected_texture_rect = (
-                                    self.map_editor_ui.texture_rects[
-                                        selected_texture_index
-                                    ]
+                            )
+
+                        else:
+                            self.current_selected_slide = (
+                                self.map_editor_ui.check_slide_selection(
+                                    current_mouse_pos
                                 )
-                            else:
+                            )
+
+                            if (
+                                self.current_selected_slide is not None
+                                and self.current_selected_slide
+                                != previous_selected_slide
+                            ):
+                                surf_of_cell = {}
+
+                                for cell, surf in self.selected_cells.items():
+                                    surf_of_cell[cell] = surf
+
+                                if previous_selected_slide is not None:
+                                    texture_places[previous_selected_slide] = (
+                                        surf_of_cell.copy()
+                                    )
+
+                                    self.clear_all_cells()
+                                    surf_of_cell.clear()
+
+                                    if (
+                                        texture_places[
+                                            self.current_selected_slide
+                                        ]
+                                        is not None
+                                    ):
+                                        self.selected_cells = texture_places[
+                                            self.current_selected_slide
+                                        ]
+
+                                previous_selected_slide = (
+                                    self.current_selected_slide
+                                )
+
                                 self.selected_texture = None
                                 self.selected_texture_rect = None
 
@@ -264,6 +385,16 @@ class MapEditorWindow:
                     self.screen, self.selected_texture_rect, border_color
                 )
 
+            if self.current_selected_slide is not None:
+                border_color = (255, 0, 0)
+                self.draw_border(
+                    self.screen,
+                    self.map_editor_ui.slide_rects[
+                        self.current_selected_slide
+                    ],
+                    border_color,
+                )
+
             pygame.display.flip()
 
         pygame.quit()
@@ -296,13 +427,12 @@ class MapEditorWindow:
                 max(start_grid_pos[1], end_grid_pos[1]) + 1,
             ):
                 cell = (x, y)
-                if self.selected_texture is not None:
-                    if delete:
-                        if cell in self.selected_cells:
-                            del self.selected_cells[cell]
-                    else:
-                        self.selected_cells[cell] = self.selected_texture
-                        self.draw_texture(cell, self.selected_texture)
+                if delete:
+                    if cell in self.selected_cells:
+                        del self.selected_cells[cell]
+                else:
+                    self.selected_cells[cell] = self.selected_texture
+                    self.draw_texture(cell, self.selected_texture)
 
     def draw_texture(self, cell, texture):
         x, y = cell
@@ -328,3 +458,25 @@ class MapEditorWindow:
 
         for cell in cells_to_delete:
             del self.selected_cells[cell]
+
+    def clear_all_cells(self):
+        for cell in self.selected_cells:
+            self.selected_cells[cell] = None
+
+    def save_textures(self, selected_slide):
+        image_path_of_cell = {}
+
+        for cell, value in self.selected_cells.items():
+            for (
+                path,
+                surf,
+            ) in PlatformTexture._cache.items():
+                if value == surf:
+                    if path not in image_path_of_cell:
+                        image_path_of_cell[path] = [cell]
+                    else:
+                        image_path_of_cell[path] += [cell]
+
+        self.levels[selected_slide] = image_path_of_cell
+
+        image_path_of_cell.clear()
