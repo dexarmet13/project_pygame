@@ -159,6 +159,7 @@ class MainWindow(QMainWindow):
         self.hide()
         game_windwow = MapEditorWindow(
             (self.screen_size.width(), self.screen_size.height()),
+            QApplication(sys.argv),
         )
         game_windwow.main()
         self.show()

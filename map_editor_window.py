@@ -1,5 +1,7 @@
 import pygame
 import numpy as np
+import sys
+from PyQt5.QtWidgets import QApplication, QMessageBox
 
 
 class ObjectTexture:
@@ -222,13 +224,17 @@ class MapEditorUI:
 
 
 class MapEditorWindow:
-    def __init__(self, screen_size):
+    def __init__(self, screen_size, application):
         pygame.init()
 
         self._screen_size = screen_size
         self.screen = pygame.display.set_mode(self._screen_size)
 
+        self.app = application
+
         self.levels = [None] * 4
+
+        self.texture_places = [None] * 4
 
         self.cell_width = self._screen_size[0] * 0.70 * 0.05
         self.cell_height = self._screen_size[1] * 0.75 * 0.077
@@ -320,8 +326,6 @@ class MapEditorWindow:
         running = True
         flag_soundtrack = False
 
-        texture_places = [None] * 4
-
         is_selecting = False
         is_deleting = False
         selected_texture_index = None
@@ -336,6 +340,9 @@ class MapEditorWindow:
 
             for event in events:
                 if event.type == pygame.QUIT:
+                    if self.show_yes_no_popup():
+                        self.save_textures()
+                        pass
                     running = False
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -436,20 +443,22 @@ class MapEditorWindow:
                                 surf_of_cell[cell] = surf
 
                             if previous_selected_slide is not None:
-                                texture_places[previous_selected_slide] = (
-                                    surf_of_cell.copy()
-                                )
+                                self.texture_places[
+                                    previous_selected_slide
+                                ] = surf_of_cell.copy()
 
                                 self.clear_all_cells()
                                 surf_of_cell.clear()
 
                                 if (
-                                    texture_places[self.current_selected_slide]
-                                    is not None
-                                ):
-                                    self.selected_cells = texture_places[
+                                    self.texture_places[
                                         self.current_selected_slide
                                     ]
+                                    is not None
+                                ):
+                                    self.selected_cells = self.texture_places[
+                                        self.current_selected_slide
+                                    ].copy()
 
                             previous_selected_slide = (
                                 self.current_selected_slide
@@ -474,6 +483,8 @@ class MapEditorWindow:
                         flag_soundtrack = not flag_soundtrack
 
                     elif event.key == pygame.K_ESCAPE:
+                        if self.show_yes_no_popup():
+                            self.save_textures()
                         running = False
 
             if self.fixed_area.collidepoint(pygame.mouse.get_pos()):
@@ -492,8 +503,6 @@ class MapEditorWindow:
                 self.draw_border(
                     self.screen, self.selected_texture_rect, border_color
                 )
-
-            print(self.current_selected_slide)
 
             if self.current_selected_slide is not None:
                 border_color = (255, 0, 0)
@@ -577,20 +586,38 @@ class MapEditorWindow:
         for cell in self.selected_cells:
             self.selected_cells[cell] = None
 
-    def save_textures(self, selected_slide):
+    def save_textures(self):
         image_path_of_cell = {}
 
-        for cell, value in self.selected_cells.items():
-            for (
-                path,
-                surf,
-            ) in ObjectTexture._cache.items():
-                if value == surf:
-                    if path not in image_path_of_cell:
-                        image_path_of_cell[path] = [cell]
-                    else:
-                        image_path_of_cell[path] += [cell]
+        for i in range(len(self.texture_places)):
+            for cell, value in self.texture_places[i].items():
+                for (
+                    path,
+                    surf,
+                ) in ObjectTexture._cache.items():
+                    if value == surf:
+                        if path not in image_path_of_cell:
+                            image_path_of_cell[path] = [cell]
+                        else:
+                            image_path_of_cell[path] += [cell]
 
-        self.levels[selected_slide] = image_path_of_cell
+            self.levels[i] = image_path_of_cell
+            image_path_of_cell.clear()
+        print(self.levels)
 
-        image_path_of_cell.clear()
+    def show_yes_no_popup(self):
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Question)
+        msg_box.setWindowTitle("Подтвердите действие")
+        msg_box.setText("Сохранить изменения?")
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        button_yes = msg_box.button(QMessageBox.Yes)
+        button_yes.setText("Да")
+        button_no = msg_box.button(QMessageBox.No)
+        button_no.setText("Нет")
+
+        return_value = msg_box.exec()
+        if return_value == QMessageBox.Yes:
+            return True
+        else:
+            return False
