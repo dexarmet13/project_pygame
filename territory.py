@@ -1,12 +1,12 @@
 import pygame
+import enemy
 
 
 class Level:
     def __init__(self, player, bg_image_file):
         self.display_size = pygame.display.get_surface().get_size()
-        self.bg = pygame.image.load(bg_image_file).convert_alpha()
         self.bg = pygame.transform.scale(
-            self.bg, (self.display_size[0], self.display_size[1])
+            pygame.image.load(bg_image_file).convert_alpha(), self.display_size
         )
         self.platform_list = pygame.sprite.Group()
         self.player = player
@@ -27,38 +27,26 @@ class Level:
 
 class Level_01(Level):
     def __init__(self, player):
-        super().__init__(player, "src/main_window_background.png")
+        super().__init__(player, "materials/backgrounds/world_background.png")
 
         platform_image = pygame.image.load(
-            "src/platform_texture.png"
+            "materials/textures/0g.png"
         ).convert_alpha()
 
         level = [
             [50, 50, 350, 400],
             [50, 50, 300, 400],
-            [50, 50, 250, 400],
-            [50, 50, 500, 475],
-            [50, 50, 550, 475],
-            [50, 50, 600, 475],
-            [50, 50, 550, 275],
-            [50, 50, 600, 275],
-            [50, 50, 650, 275],
         ]
 
         for platform in level:
-            block = Platform(platform[0], platform[1], platform_image)
-            block.rect.x = platform[2]
-            block.rect.y = platform[3]
+            block = Platform(*platform, platform_image)
             self.platform_list.add(block)
 
 
 class Platform(pygame.sprite.Sprite):
-    def __init__(self, width, height, image):
+    def __init__(self, width, height, x, y, image):
         super().__init__()
         self.image = pygame.transform.scale(image, (width, height))
         self.rect = self.image.get_rect()
-
-class BlockDie(Platform):
-    def __init__(self, x, y):
-        Platform.__init__(self, x, y)
-        self.image = pygame.image.load("src/dieBlock.png")
+        self.rect.x = x
+        self.rect.y = y
