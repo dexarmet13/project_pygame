@@ -22,8 +22,8 @@ class MapEditorUI:
         screen_size,
         font,
         bg_image,
-        platform_images,
-        objects_images,
+        right_images,
+        left_images,
         cell_size,
         slide_image,
     ):
@@ -33,10 +33,11 @@ class MapEditorUI:
         self.editor_surf = pygame.Surface(self._screen_size)
 
         self.bg = bg_image
-        self.platform_images = [img for img in platform_images]
-        self.objects_images = [img for img in objects_images]
+        self.right_images = [img for img in right_images]
+        self.left_images = [img for img in left_images]
 
-        self.padding = self._screen_size[0] * 0.02
+        self.padding = self._screen_size[0] * 0.015
+        self.big_padding = self._screen_size[1] * 0.38
         self.interval_x = 5
         self.interval_y = 7.7
 
@@ -52,37 +53,83 @@ class MapEditorUI:
         )
         self.slide_rects = []
 
-        self.platform_texture_rects = self._generate_platform_texture_rects()
-        self.object_texture_rects = self._generate_object_texture_rects()
+        self.right_textures_rects = self._generate_right_textures_rects()
+        self.left_textures_rects = self._generate_left_textures_rects()
 
         self.GRID_LINE_COLOR = (0, 0, 0)
         self.TEXT_COLOR = (0, 0, 0)
         self.BG_COLOR = (255, 255, 255)
 
-    def _generate_platform_texture_rects(self):
-        rects = []
-        for i in range(len(self.platform_images)):
-            top = self._screen_size[1] * 0.08 * (i + 1) + self.padding * i
-            width = int(self.cell_width * 1.25)
-            height = int(self.cell_height * 1.25)
-            right = self._screen_size[0] * 0.945
-            left = right - width
+    def _generate_left_textures_rects(self):
+        rects = [[], []]
 
-            rect = pygame.Rect(left, top, width, height)
-            rects.append(rect)
+        for j in range(2):
+            num_images = len(self.left_images[j])
+            num_pairs = num_images // 2
+
+            for i in range(num_pairs):
+                top = (
+                    self._screen_size[1] * 0.08 * (i + 1)
+                    + self.padding * i
+                    + self.big_padding * j
+                )
+                width = int(self.cell_width * 1.25)
+                height = int(self.cell_height * 1.25)
+
+                left_rect_left = self._screen_size[0] * 0.115 - width * 2
+                left_rect = pygame.Rect(left_rect_left, top, width, height)
+                rects[j].append(left_rect)
+
+                right_rect_left = left_rect_left + width * 1.25
+                right_rect = pygame.Rect(right_rect_left, top, width, height)
+                rects[j].append(right_rect)
+
+            if num_images % 2:
+                top = (
+                    self._screen_size[1] * 0.08 * (num_pairs + 1)
+                    + self.padding * num_pairs
+                    + self.big_padding * j
+                )
+                left = self._screen_size[0] * 0.115 - width * 2
+                rect = pygame.Rect(left, top, width, height)
+                rects[j].append(rect)
+
         return rects
 
-    def _generate_object_texture_rects(self):
-        rects = []
-        for i in range(len(self.objects_images)):
-            top = self._screen_size[1] * 0.08 * (i + 1) + self.padding * i
-            width = int(self.cell_width * 1.25)
-            height = int(self.cell_height * 1.25)
-            right = self._screen_size[0] * 0.095
-            left = right - width
+    def _generate_right_textures_rects(self):
+        rects = [[], []]
 
-            rect = pygame.Rect(left, top, width, height)
-            rects.append(rect)
+        for j in range(2):
+            num_images = len(self.right_images[j])
+            num_pairs = num_images // 2
+
+            for i in range(num_pairs):
+                top = (
+                    self._screen_size[1] * 0.08 * (i + 1)
+                    + self.padding * i
+                    + self.big_padding * j
+                )
+                width = int(self.cell_width * 1.25)
+                height = int(self.cell_height * 1.25)
+
+                left_rect_left = self._screen_size[0] * 0.960 - width * 2
+                left_rect = pygame.Rect(left_rect_left, top, width, height)
+                rects[j].append(left_rect)
+
+                right_rect_left = left_rect_left + width * 1.25
+                right_rect = pygame.Rect(right_rect_left, top, width, height)
+                rects[j].append(right_rect)
+
+            if num_images % 2:
+                top = (
+                    self._screen_size[1] * 0.08 * (num_pairs + 1)
+                    + self.padding * num_pairs
+                    + self.big_padding * j
+                )
+                left = self._screen_size[0] * 0.960 - width
+                rect = pygame.Rect(left, top, width, height)
+                rects[j].append(rect)
+
         return rects
 
     def draw(self, screen):
@@ -90,8 +137,8 @@ class MapEditorUI:
         self.editor_surf.blit(self.bg, (self._screen_size[0] * 0.15, 0))
         self._draw_grid_lines(self.interval_x, self.interval_y)
         self._draw_text()
-        self._draw_platforms_images()
-        self._draw_objects_images()
+        self._draw_right_images()
+        self._draw_left_images()
         self._draw_slide_images()
         screen.blit(self.editor_surf, (0, 0))
 
@@ -115,8 +162,27 @@ class MapEditorUI:
             )
         )
 
+        traps_text_surf = self._font.render("Ловушки", True, self.TEXT_COLOR)
+        traps_text_rect = traps_text_surf.get_rect(
+            center=(
+                self._screen_size[0] * 0.075,
+                self._screen_size[1] * 0.43,
+            )
+        )
+
+        enemies_text_surf = self._font.render("Враги", True, self.TEXT_COLOR)
+        enemies_text_rect = enemies_text_surf.get_rect(
+            center=(
+                self._screen_size[0] * 0.85
+                + self._screen_size[0] * 0.25 / 3.5,
+                self._screen_size[1] * 0.43,
+            )
+        )
+
         self.editor_surf.blit(platform_text_surf, platform_text_rect)
         self.editor_surf.blit(objects_text_surf, object_text_rect)
+        self.editor_surf.blit(traps_text_surf, traps_text_rect)
+        self.editor_surf.blit(enemies_text_surf, enemies_text_rect)
 
     def _draw_grid_lines(self, interval_x, interval_y):
         for y in np.arange(0, interval_y * 14, interval_y):
@@ -142,50 +208,46 @@ class MapEditorUI:
                 3,
             )
 
-    def _draw_platforms_images(self):
-        for img, rect in zip(
-            self.platform_images, self.platform_texture_rects
-        ):
-            self.editor_surf.blit(
-                pygame.transform.scale(
+    def _draw_right_images(self):
+        for group, rects in zip(self.right_images, self.right_textures_rects):
+            for img, rect in zip(group, rects):
+                scaled_img = pygame.transform.scale(
                     img,
                     (
                         int(self.cell_width * 1.25),
                         int(self.cell_height * 1.25),
                     ),
-                ),
-                rect,
-            )
+                )
+                self.editor_surf.blit(scaled_img, rect)
 
-    def _draw_objects_images(self):
-        for img, rect in zip(self.objects_images, self.object_texture_rects):
-            self.editor_surf.blit(
-                pygame.transform.scale(
+    def _draw_left_images(self):
+        for group, rects in zip(self.left_images, self.left_textures_rects):
+            for img, rect in zip(group, rects):
+                scaled_img = pygame.transform.scale(
                     img,
                     (
                         int(self.cell_width * 1.25),
                         int(self.cell_height * 1.25),
                     ),
-                ),
-                rect,
-            )
+                )
+                self.editor_surf.blit(scaled_img, rect)
 
     def _draw_slide_images(self):
         image_positions = [
             (
-                self._screen_size[0] * 0.08,
+                self._screen_size[0] * 0.15,
                 self._screen_size[1] * 0.79,
             ),
             (
-                self._screen_size[0] * 0.31,
+                self._screen_size[0] * 0.332,
                 self._screen_size[1] * 0.79,
             ),
             (
-                self._screen_size[0] * 0.54,
+                self._screen_size[0] * 0.516,
                 self._screen_size[1] * 0.79,
             ),
             (
-                self._screen_size[0] * 0.77,
+                self._screen_size[0] * 0.70,
                 self._screen_size[1] * 0.79,
             ),
         ]
@@ -204,16 +266,18 @@ class MapEditorUI:
             self.editor_surf.blit(self.slide_image, image_rect)
             self.editor_surf.blit(text_surface, text_rect)
 
-    def check_texture_selection(self, mouse_pos):
-        for i, rect in enumerate(self.platform_texture_rects):
-            if rect.collidepoint(mouse_pos):
-                return i
+    def check_right_selection(self, mouse_pos):
+        for j, rects in enumerate(self.right_textures_rects):
+            for i, rect in enumerate(rects):
+                if rect.collidepoint(mouse_pos):
+                    return j, i
         return None
 
-    def check_object_selection(self, mouse_pos):
-        for i, rect in enumerate(self.object_texture_rects):
-            if rect.collidepoint(mouse_pos):
-                return i
+    def check_left_selection(self, mouse_pos):
+        for j, rects in enumerate(self.left_textures_rects):
+            for i, rect in enumerate(rects):
+                if rect.collidepoint(mouse_pos):
+                    return j, i
         return None
 
     def check_slide_selection(self, mouse_pos):
@@ -267,46 +331,75 @@ class MapEditorWindow:
 
         self.current_selected_slide = 0
 
-        self.load_platform_images()
-        self.load_objects_images()
+        self.load_right_images()
+        self.load_left_images()
 
         self.map_editor_ui = MapEditorUI(
             self._screen_size,
             self._font,
             self.bg,
-            self.platform_images,
-            self.objects_images,
+            self.right_images,
+            self.left_images,
             (self.cell_width, self.cell_height),
             self.slide_image,
         )
 
-    def load_platform_images(self):
+    def load_right_images(self):
         texture_paths = [
-            "materials/textures/green_ground_texture.png",
-            "materials/textures/colored_ground_texture.png",
-            "materials/textures/dirt_ground_texture.png",
-            "materials/textures/rock_ground_texture.png",
-            "materials/textures/lava_ground_texture.png",
-            "materials/textures/snow_ground_texture.png",
-        ]
-        texture_size = (self.cell_width, self.cell_height)
-        self.platform_images = [
-            ObjectTexture.get_texture(texture_file, texture_size)
-            for texture_file in texture_paths
+            [
+                "materials/textures/green_ground_texture.png",
+                "materials/textures/colored_ground_texture.png",
+                "materials/textures/dirt_ground_texture.png",
+                "materials/textures/rock_ground_texture.png",
+                "materials/textures/lava_ground_texture.png",
+                "materials/textures/snow_ground_texture.png",
+            ],
+            [
+                "materials/textures/green_ground_texture.png",
+                "materials/textures/colored_ground_texture.png",
+                "materials/textures/dirt_ground_texture.png",
+                "materials/textures/rock_ground_texture.png",
+                "materials/textures/lava_ground_texture.png",
+                "materials/textures/snow_ground_texture.png",
+            ],
         ]
 
-    def load_objects_images(self):
-        texture_paths = [
-            "materials/details/bush.png",
-            "materials/details/firefly.png",
-            "materials/details/flower.png",
-            "materials/details/grass.png",
-            "materials/details/pixel_grass.png",
+        self.right_images = [
+            [
+                ObjectTexture.get_texture(
+                    texture_file, (self.cell_width, self.cell_height)
+                )
+                for texture_file in texture_group
+            ]
+            for texture_group in texture_paths
         ]
-        texture_size = (self.cell_width, self.cell_height)
-        self.objects_images = [
-            ObjectTexture.get_texture(texture_file, texture_size)
-            for texture_file in texture_paths
+
+    def load_left_images(self):
+        texture_paths = [
+            [
+                "materials/details/bush.png",
+                "materials/details/firefly.png",
+                "materials/details/flower.png",
+                "materials/details/grass.png",
+                "materials/details/pixel_grass.png",
+            ],
+            [
+                "materials/details/bush.png",
+                "materials/details/firefly.png",
+                "materials/details/flower.png",
+                "materials/details/grass.png",
+                "materials/details/pixel_grass.png",
+            ],
+        ]
+
+        self.left_images = [
+            [
+                ObjectTexture.get_texture(
+                    texture_file, (self.cell_width, self.cell_height)
+                )
+                for texture_file in texture_group
+            ]
+            for texture_group in texture_paths
         ]
 
     def toggle_soundtrack(self, flag_soundtrack):
@@ -326,8 +419,8 @@ class MapEditorWindow:
 
         is_selecting = False
         is_deleting = False
-        selected_texture_index = None
-        selected_object_index = None
+        selected_right_index = None
+        selected_left_index = None
         previous_selected_slide = 0
 
         while running:
@@ -348,8 +441,8 @@ class MapEditorWindow:
                             if self.fixed_area.collidepoint(
                                 selection_start
                             ) and (
-                                selected_texture_index is not None
-                                or selected_object_index is not None
+                                selected_right_index is not None
+                                or selected_left_index is not None
                             ):
                                 is_selecting = True
                             else:
@@ -377,42 +470,44 @@ class MapEditorWindow:
                         is_selecting = False
 
                         if not self.fixed_area.collidepoint(current_mouse_pos):
-                            selected_texture_index = (
-                                self.map_editor_ui.check_texture_selection(
+                            selected_right_index = (
+                                self.map_editor_ui.check_right_selection(
                                     current_mouse_pos
                                 )
                             )
 
-                            selected_object_index = (
-                                self.map_editor_ui.check_object_selection(
+                            selected_left_index = (
+                                self.map_editor_ui.check_left_selection(
                                     current_mouse_pos
                                 )
                             )
 
                         if (
-                            selected_texture_index is not None
-                            and not selected_object_index
+                            selected_right_index is not None
+                            and not selected_left_index
                         ):
-                            self.selected_texture = self.platform_images[
-                                selected_texture_index
-                            ]
+                            self.selected_texture = self.right_images[
+                                selected_right_index[0]
+                            ][selected_right_index[1]]
+
                             self.selected_texture_rect = (
-                                self.map_editor_ui.platform_texture_rects[
-                                    selected_texture_index
-                                ]
+                                self.map_editor_ui.right_textures_rects[
+                                    selected_right_index[0]
+                                ][selected_right_index[1]]
                             )
 
                         elif (
-                            selected_object_index is not None
-                            and not selected_texture_index
+                            selected_left_index is not None
+                            and not selected_right_index
                         ):
-                            self.selected_texture = self.objects_images[
-                                selected_object_index
-                            ]
+                            self.selected_texture = self.left_images[
+                                selected_left_index[0]
+                            ][selected_left_index[1]]
+
                             self.selected_texture_rect = (
-                                self.map_editor_ui.object_texture_rects[
-                                    selected_object_index
-                                ]
+                                self.map_editor_ui.left_textures_rects[
+                                    selected_left_index[0]
+                                ][selected_left_index[1]]
                             )
                         else:
                             self.selected_texture = None
