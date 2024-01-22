@@ -1,4 +1,6 @@
 import pygame
+from pathlib import Path
+import json
 
 
 class Level:
@@ -25,8 +27,10 @@ class Level:
 
 
 class Level_01(Level):
-    def __init__(self, player):
+    def __init__(self, player, map_path):
         super().__init__(player, "materials/backgrounds/world_background.png")
+
+        self.map_path = map_path
 
         platform_image = pygame.image.load(
             "materials/textures/colored_ground_texture.png"
@@ -35,30 +39,19 @@ class Level_01(Level):
         self.block_width = self.display_size[0] * 0.70 * 0.05
         self.block_height = self.display_size[1] * 0.75 * 0.077
 
-        level = [
-            [
-                self.block_width * 1,
-                self.block_height * 1,
-                self.display_size[0] * 0.15,
-                self.display_size[1] * 0.75,
-            ],
-            [
-                self.block_width * 2,
-                self.block_height * 1,
-                self.display_size[0] * 0.15,
-                self.display_size[1] * 0.75,
-            ],
-            [
-                self.block_width * 3,
-                self.block_height * 1,
-                self.display_size[0] * 0.15,
-                self.display_size[1] * 0.75,
-            ],
-        ]
+        level = self.load_map()
 
-        for platform in level:
-            block = Platform(*platform, platform_image)
-            self.platform_list.add(block)
+    def load_textures(self):
+        with Path(self.map_path).open("r", encoding="utf-8") as json_file:
+            level = json.load(json_file)
+        return level
+
+    def load_map(self):
+        textures = self.load_textures()
+
+        for dc in textures:
+            for image_path, value in dc.items():
+                print(image_path, value)
 
 
 class Platform(pygame.sprite.Sprite):

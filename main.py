@@ -160,8 +160,9 @@ class MainWindow(QMainWindow):
 
     def play(self):
         self.hide()
-        if self.choose_map_to_open():
-            game_windwow = GameWindow(self.screen_size)
+        file_name = self.choose_map_to_open()
+        if file_name:
+            game_windwow = GameWindow(self.screen_size, file_name)
             game_windwow.main()
 
         self.show()
@@ -193,6 +194,7 @@ class MainWindow(QMainWindow):
         ):
             self.textures = game_window.save_textures()
             self.show_save_file_dialog()
+
         elif reply != QMessageBox.No:
             QMessageBox.warning(
                 self,
@@ -211,7 +213,7 @@ class MainWindow(QMainWindow):
         options = QFileDialog.Options()
         # options |= QFileDialog.DontUseNativeDialog
 
-        fileName, _ = QFileDialog.getSaveFileName(
+        file_name, _ = QFileDialog.getSaveFileName(
             self,
             "Сохранить файл как...",
             defaultDir + "/" + defaultFileName,
@@ -219,8 +221,8 @@ class MainWindow(QMainWindow):
             options=options,
         )
 
-        if fileName:
-            with Path(fileName).open("w", encoding="utf-8") as file:
+        if file_name:
+            with Path(file_name).open("w", encoding="utf-8") as file:
                 json.dump(self.textures, file, ensure_ascii=False, indent=4)
             QMessageBox.information(self, "Готово", "Карта успешно сохранена")
         else:

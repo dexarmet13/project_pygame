@@ -7,8 +7,11 @@ from player import Player
 
 
 class GameWindow:
-    def __init__(self, max_screen_size):
+    def __init__(self, max_screen_size, map_path):
         pygame.init()
+
+        self.path_to_map = map_path
+
         self.screen = self.apply_settings(max_screen_size)
         self.display_size = pygame.display.get_surface().get_size()
 
@@ -49,12 +52,14 @@ class GameWindow:
                 resolution[0] >= max_screen_size.width()
                 and resolution[1] >= max_screen_size.height()
             ):
-                screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-            else:
-                screen = (
-                    pygame.display.set_mode(max_screen_size.width()),
-                    max_screen_size.height(),
+                screen = pygame.display.set_mode(
+                    (max_screen_size.width(), max_screen_size.height())
                 )
+            else:
+                screen = pygame.display.set_mode(
+                    (resolution[0], resolution[1])
+                )
+
         else:
             screen = pygame.display.set_mode(
                 (resolution[0], resolution[1]), pygame.FULLSCREEN
@@ -64,10 +69,7 @@ class GameWindow:
     def main(self):
         pygame.display.set_caption("Платформер")
 
-        level_list = []
-        level_list.append(Level_01(self.player))
-        current_level_no = 0
-        current_level = level_list[current_level_no]
+        current_level = Level_01(self.player, self.path_to_map)
 
         active_sprite_list = pygame.sprite.Group()
         self.player.level = current_level
