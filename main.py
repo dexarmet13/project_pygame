@@ -81,7 +81,7 @@ class MainWindow(QMainWindow):
     def showDialog(self):
         msgBox = QMessageBox()
         msgBox.setIcon(QMessageBox.Information)
-        msgBox.setText("Закрыть приложение?")
+        msgBox.setText("Закрыть игру?")
         msgBox.setWindowTitle("Подтверждение выхода")
         msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
 
@@ -158,8 +158,11 @@ class MainWindow(QMainWindow):
 
     def play(self):
         self.hide()
+        self.choose_map_to_open()
+
         game_windwow = GameWindow()
         game_windwow.main()
+
         self.show()
 
     def edit_map(self):
@@ -202,22 +205,47 @@ class MainWindow(QMainWindow):
         if not path.exists():
             path.mkdir(parents=True)
 
-        options = QFileDialog.Options()
-
         defaultFileName = "Untitled_map.json"
+        defaultDir = "./user_levels"
+        options = QFileDialog.Options()
+        # options |= QFileDialog.DontUseNativeDialog
+
         fileName, _ = QFileDialog.getSaveFileName(
             self,
             "Сохранить файл как...",
-            defaultFileName,
+            defaultDir + "/" + defaultFileName,
             "All Files (*);;Text Files (*.json)",
             options=options,
         )
+
         if fileName:
             with Path(fileName).open("w", encoding="utf-8") as file:
                 json.dump(self.textures, file, ensure_ascii=False, indent=4)
             QMessageBox.information(self, "Готово", "Карта успешно сохранена")
         else:
-            QMessageBox.warning(self, "Ошибка", "Сохранение карты отменено")
+            QMessageBox.warning(self, "Ошибка", "Не удалось сохранить карту")
+
+    def choose_map_to_open(self):
+        path = Path("user_levels")
+        if not path.exists():
+            QMessageBox.warning(
+                self, "Ошибка", "Вы не создали еще ни одной карты"
+            )
+
+        options = QFileDialog.Options()
+        # options |= QFileDialog.DontUseNativeDialog
+        file_name, _ = QFileDialog.getOpenFileName(
+            self,
+            "Выберите файл",
+            "./user_levels",
+            "All Files (*);;Text Files (*.txt);;JSON Files (*.json)",
+            options=options,
+        )
+        if file_name:
+            return file_name
+        return QMessageBox.warning(self, "Ошибка", "Не удалось открыть карту")
+
+        self.show()
 
 
 def except_hook(cls, exception, traceback):
