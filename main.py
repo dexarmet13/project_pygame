@@ -198,7 +198,7 @@ class MainWindow(QMainWindow):
             )
 
     def show_save_file_dialog(self):
-        path = Path("levels")
+        path = Path("user_levels")
         if not path.exists():
             path.mkdir(parents=True)
 
