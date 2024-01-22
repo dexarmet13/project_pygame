@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
     QStackedWidget,
     QDesktopWidget,
     QMessageBox,
+    QFileDialog,
 )
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QSize, Qt
@@ -17,6 +18,8 @@ from map_editor_window import MapEditorWindow
 
 class MainWindow(QMainWindow):
     def __init__(self):
+        self.app = app
+
         self._images = {
             "main_window_background": QPixmap(
                 "materials/backgrounds/main_background.png"
@@ -64,6 +67,8 @@ class MainWindow(QMainWindow):
         self.settings_window.back_button.clicked.connect(self.go_back)
 
         self.main_stacked_widget.addWidget(self.settings_window)
+
+        self.textures = None
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -157,12 +162,44 @@ class MainWindow(QMainWindow):
 
     def edit_map(self):
         self.hide()
-        game_windwow = MapEditorWindow(
-            (self.screen_size.width(), self.screen_size.height()),
-            QApplication(sys.argv),
+
+        game_window = MapEditorWindow(
+            (self.screen_size.width(), self.screen_size.height())
         )
-        game_windwow.main()
+        game_window.main()
+
         self.show()
+        self.show_popup(game_window)
+
+    def show_popup(self, game_window):
+        reply = QMessageBox.question(
+            self,
+            "Сообщение",
+            "Сохранить карту?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+
+        textures = game_window.texture_places
+        if reply == QMessageBox.Yes and textures is not None:
+            self.textures = game_window.save_textures()
+            print(self.textures)
+            self.show_save_file_dialog()
+
+    def show_save_file_dialog(self):
+        options = QFileDialog.Options()
+
+        defaultFileName = "Untitled_map.txt"
+        fileName, _ = QFileDialog.getSaveFileName(
+            self,
+            "Сохранить файл как...",
+            defaultFileName,
+            "All Files (*);;Text Files (*.txt)",
+            options=options,
+        )
+        if fileName:
+            print(f"Выбранный файл для сохранения: {fileName}")
+            # Здесь код для сохранения данных в выбранный файл
 
 
 def except_hook(cls, exception, traceback):
