@@ -132,6 +132,10 @@ venv.bak/
 user_data
 user_data/
 
+#User Levels
+user_levels
+user_levels/
+
 # Spyder project settings
 .spyderproject
 .spyproject

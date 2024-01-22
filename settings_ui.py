@@ -94,7 +94,10 @@ class SettingsUI(QWidget):
         self.fps_limit_combo_box = QComboBox()
         self.set_combo_box_stylesheet(self.fps_limit_combo_box)
         self.fps_limit_combo_box.addItems([
-            "Без ограничений", "Ограничение 60", "Ограничение 30"
+            "Без ограничений",
+            "Ограничение 60",
+            "Ограничение 45",
+            "Ограничение 30",
         ])
         self.main_layout.addWidget(self.fps_limit_combo_box, 5, 1, 1, 2)
 
@@ -110,7 +113,9 @@ class SettingsUI(QWidget):
 
         self.back_button = QPushButton("Назад")
         self.set_button_stylesheet(self.back_button)
-        self.back_button.setIcon(QIcon("src/back_button_texture.png"))
+        self.back_button.setIcon(
+            QIcon("materials/button_bg/back_button_texture.png")
+        )
         self.back_button.setIconSize(QSize(34, 34))
         self.main_layout.addWidget(self.back_button, 7, 0, 1, 1)
 

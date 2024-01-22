@@ -1,4 +1,6 @@
 import sys
+import json
+from pathlib import Path
 from PyQt5.QtGui import QPixmap, QBrush
 from PyQt5.QtWidgets import (
     QApplication,
@@ -6,22 +8,24 @@ from PyQt5.QtWidgets import (
     QStackedWidget,
     QDesktopWidget,
     QMessageBox,
+    QFileDialog,
 )
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QSize, Qt
 from welcome_window_ui import WelcomeWindowUI
 from settings_ui import SettingsUI
-from platformer import main
+from platformer import GameWindow
+from map_editor_window import MapEditorWindow
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         self._images = {
             "main_window_background": QPixmap(
-                "src/main_window_background.png"
+                "materials/backgrounds/main_background.png"
             ),
             "settings_window_background": QPixmap(
-                "src/settings_window_background.jpg"
+                "materials/backgrounds/settings_background.jpg"
             ),
         }
 
@@ -43,14 +47,18 @@ class MainWindow(QMainWindow):
 
         self.welcome_window.settings_button.clicked.connect(self.settings)
         self.set_button_stylesheet(
-            self.welcome_window.settings_button, "src/buttons_texture.png"
+            self.welcome_window.settings_button,
+            "materials/button_bg/buttons_texture.png",
         )
         self.welcome_window.play_button.clicked.connect(self.play)
         self.set_button_stylesheet(
-            self.welcome_window.play_button, "src/play_button_texture.png"
+            self.welcome_window.play_button,
+            "materials/button_bg/buttons_texture.png",
         )
+        self.welcome_window.map_editor.clicked.connect(self.edit_map)
         self.set_button_stylesheet(
-            self.welcome_window.about_us_button, "src/buttons_texture.png"
+            self.welcome_window.map_editor,
+            "materials/button_bg/buttons_texture.png",
         )
 
         self.main_stacked_widget.addWidget(self.welcome_window)
@@ -60,14 +68,18 @@ class MainWindow(QMainWindow):
 
         self.main_stacked_widget.addWidget(self.settings_window)
 
+        self.textures = None
+
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.showDialog()
+        elif event.key() == Qt.Key_Return:
+            self.play()
 
     def showDialog(self):
         msgBox = QMessageBox()
         msgBox.setIcon(QMessageBox.Information)
-        msgBox.setText("Закрыть приложение?")
+        msgBox.setText("Закрыть игру?")
         msgBox.setWindowTitle("Подтверждение выхода")
         msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
 
@@ -82,26 +94,26 @@ class MainWindow(QMainWindow):
         self.move(qr.topLeft())
 
     def set_background_pixmap(self, image_key):
+        self.screen = QApplication.primaryScreen()
+        self.screen_size = self.screen.size()
+
         pixmap = self._images.get(image_key)
         if pixmap:
-            screen = QApplication.primaryScreen()
-            screen_size = screen.size()
             pixmap_size = pixmap.size()
             if (
-                pixmap_size.width() > screen_size.width()
-                or pixmap_size.height() > screen_size.height()
+                pixmap_size.width() > self.screen_size.width()
+                or pixmap_size.height() > self.screen_size.height()
             ):
                 pixmap = pixmap.scaled(
-                    screen_size.width(),
-                    screen_size.height(),
+                    self.screen_size.width(),
+                    self.screen_size.height(),
                     QtCore.Qt.KeepAspectRatio,
                 )
 
             palette = self.palette()
             palette.setBrush(self.backgroundRole(), QBrush(pixmap))
             self.setPalette(palette)
-        else:
-            print(f"Image key not found: {image_key}")
+        return False
 
     def set_button_stylesheet(self, button, image_path):
         button.setFixedSize(QSize(190, 126))
@@ -113,18 +125,17 @@ class MainWindow(QMainWindow):
     def resize_window(self, image_key):
         pixmap = self._images.get(image_key)
         if pixmap:
-            screen = QApplication.primaryScreen()
-            screen_size = screen.size()
             pixmap_size = pixmap.size()
             if (
-                pixmap_size.width() > screen_size.width()
-                or pixmap_size.height() > screen_size.height()
+                pixmap_size.width() > self.screen_size.width()
+                or pixmap_size.height() > self.screen_size.height()
             ):
-                self.resize(screen_size.width(), screen_size.height())
+                self.resize(
+                    self.screen_size.width(), self.screen_size.height()
+                )
             else:
                 self.resize(pixmap_size.width(), pixmap_size.height())
             return True
-        print(f"Image key not found: {image_key}")
         return False
 
     def settings(self):
@@ -145,7 +156,93 @@ class MainWindow(QMainWindow):
 
     def play(self):
         self.hide()
-        main()
+        self.choose_map_to_open()
+
+        game_windwow = GameWindow(self.screen_size)
+        game_windwow.main()
+
+        self.show()
+
+    def edit_map(self):
+        self.hide()
+
+        game_window = MapEditorWindow(
+            (self.screen_size.width(), self.screen_size.height())
+        )
+        game_window.main()
+
+        self.show()
+        self.show_popup(game_window)
+
+    def show_popup(self, game_window):
+        reply = QMessageBox.question(
+            self,
+            "Сообщение",
+            "Сохранить карту?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+
+        textures = game_window.texture_places
+
+        if reply == QMessageBox.Yes and any(
+            texture is not None for texture in textures
+        ):
+            self.textures = game_window.save_textures()
+            self.show_save_file_dialog()
+        elif reply != QMessageBox.No:
+            QMessageBox.warning(
+                self,
+                "Ошибка",
+                "Созданная вами карта пуста!",
+                QMessageBox.Ok,
+            )
+
+    def show_save_file_dialog(self):
+        path = Path("user_levels")
+        if not path.exists():
+            path.mkdir(parents=True)
+
+        defaultFileName = "Untitled_map.json"
+        defaultDir = "./user_levels"
+        options = QFileDialog.Options()
+        # options |= QFileDialog.DontUseNativeDialog
+
+        fileName, _ = QFileDialog.getSaveFileName(
+            self,
+            "Сохранить файл как...",
+            defaultDir + "/" + defaultFileName,
+            "All Files (*);;Text Files (*.json)",
+            options=options,
+        )
+
+        if fileName:
+            with Path(fileName).open("w", encoding="utf-8") as file:
+                json.dump(self.textures, file, ensure_ascii=False, indent=4)
+            QMessageBox.information(self, "Готово", "Карта успешно сохранена")
+        else:
+            QMessageBox.warning(self, "Ошибка", "Не удалось сохранить карту")
+
+    def choose_map_to_open(self):
+        path = Path("user_levels")
+        if not path.exists():
+            QMessageBox.warning(
+                self, "Ошибка", "Вы не создали еще ни одной карты"
+            )
+
+        options = QFileDialog.Options()
+        # options |= QFileDialog.DontUseNativeDialog
+        file_name, _ = QFileDialog.getOpenFileName(
+            self,
+            "Выберите файл",
+            "./user_levels",
+            "All Files (*);;Text Files (*.txt);;JSON Files (*.json)",
+            options=options,
+        )
+        if file_name:
+            return file_name
+        return QMessageBox.warning(self, "Ошибка", "Не удалось открыть карту")
+
         self.show()
 
 
