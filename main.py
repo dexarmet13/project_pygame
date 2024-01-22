@@ -160,10 +160,9 @@ class MainWindow(QMainWindow):
 
     def play(self):
         self.hide()
-        self.choose_map_to_open()
-
-        game_windwow = GameWindow(self.screen_size)
-        game_windwow.main()
+        if self.choose_map_to_open():
+            game_windwow = GameWindow(self.screen_size)
+            game_windwow.main()
 
         self.show()
 
@@ -245,9 +244,8 @@ class MainWindow(QMainWindow):
         )
         if file_name:
             return file_name
-        return QMessageBox.warning(self, "Ошибка", "Не удалось открыть карту")
-
-        self.show()
+        QMessageBox.warning(self, "Ошибка", "Не удалось открыть карту")
+        return False
 
 
 def except_hook(cls, exception, traceback):
