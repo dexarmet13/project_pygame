@@ -259,7 +259,9 @@ class MapEditorUI:
 
             text = f"Слайд {i + 1}"
             text_color = pygame.Color("white")
-            text_surface = self._font.render(text, True, text_color)
+            text_surface = pygame.font.Font(None, 85).render(
+                text, True, text_color
+            )
 
             text_rect = text_surface.get_rect(center=image_rect.center)
 
@@ -354,14 +356,7 @@ class MapEditorWindow:
                 "materials/textures/lava_ground_texture.png",
                 "materials/textures/snow_ground_texture.png",
             ],
-            [
-                "materials/textures/green_ground_texture.png",
-                "materials/textures/colored_ground_texture.png",
-                "materials/textures/dirt_ground_texture.png",
-                "materials/textures/rock_ground_texture.png",
-                "materials/textures/lava_ground_texture.png",
-                "materials/textures/snow_ground_texture.png",
-            ],
+            [],
         ]
 
         self.right_images = [
@@ -378,17 +373,16 @@ class MapEditorWindow:
         texture_paths = [
             [
                 "materials/details/bush.png",
+                "materials/details/basket.png",
                 "materials/details/firefly.png",
                 "materials/details/flower.png",
                 "materials/details/grass.png",
                 "materials/details/pixel_grass.png",
             ],
             [
-                "materials/details/bush.png",
-                "materials/details/firefly.png",
-                "materials/details/flower.png",
-                "materials/details/grass.png",
-                "materials/details/pixel_grass.png",
+                "materials/details/lava.png",
+                "materials/details/shipi.png",
+                "materials/details/stones.png",
             ],
         ]
 
@@ -527,28 +521,7 @@ class MapEditorWindow:
                             and self.current_selected_slide
                             != previous_selected_slide
                         ):
-                            surf_of_cell = {}
-
-                            for cell, surf in self.selected_cells.items():
-                                surf_of_cell[cell] = surf
-
-                            if previous_selected_slide is not None:
-                                self.texture_places[
-                                    previous_selected_slide
-                                ] = surf_of_cell.copy()
-
-                                self.clear_all_cells()
-                                surf_of_cell.clear()
-
-                                if (
-                                    self.texture_places[
-                                        self.current_selected_slide
-                                    ]
-                                    is not None
-                                ):
-                                    self.selected_cells = self.texture_places[
-                                        self.current_selected_slide
-                                    ].copy()
+                            self.get_texture_place(previous_selected_slide)
 
                             previous_selected_slide = (
                                 self.current_selected_slide
@@ -673,6 +646,23 @@ class MapEditorWindow:
     def clear_all_cells(self):
         for cell in self.selected_cells:
             self.selected_cells[cell] = None
+
+    def get_texture_place(self, previous_selected_slide):
+        surf_of_cell = {}
+
+        for cell, surf in self.selected_cells.items():
+            surf_of_cell[cell] = surf
+
+        if previous_selected_slide is not None:
+            self.texture_places[previous_selected_slide] = surf_of_cell.copy()
+
+            self.clear_all_cells()
+            surf_of_cell.clear()
+
+            if self.texture_places[self.current_selected_slide] is not None:
+                self.selected_cells = self.texture_places[
+                    self.current_selected_slide
+                ].copy()
 
     def save_textures(self):
         image_path_of_cell = {}

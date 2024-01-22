@@ -1,7 +1,7 @@
 import sys
 import json
 from pathlib import Path
-from PyQt5.QtGui import QPixmap, QBrush
+from PyQt5.QtGui import QPixmap, QBrush, QPalette
 from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -107,12 +107,16 @@ class MainWindow(QMainWindow):
                 pixmap = pixmap.scaled(
                     self.screen_size.width(),
                     self.screen_size.height(),
-                    QtCore.Qt.KeepAspectRatio,
+                    Qt.KeepAspectRatio,
                 )
 
+            self.setAutoFillBackground(True)
             palette = self.palette()
-            palette.setBrush(self.backgroundRole(), QBrush(pixmap))
+            palette.setBrush(QPalette.Background, QBrush(pixmap))
             self.setPalette(palette)
+            self.update()
+            return True
+
         return False
 
     def set_button_stylesheet(self, button, image_path):
@@ -182,7 +186,7 @@ class MainWindow(QMainWindow):
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No,
         )
-
+        game_window.get_texture_place(game_window.current_selected_slide)
         textures = game_window.texture_places
 
         if reply == QMessageBox.Yes and any(
