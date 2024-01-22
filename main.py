@@ -1,4 +1,6 @@
 import sys
+import json
+from pathlib import Path
 from PyQt5.QtGui import QPixmap, QBrush
 from PyQt5.QtWidgets import (
     QApplication,
@@ -181,25 +183,41 @@ class MainWindow(QMainWindow):
         )
 
         textures = game_window.texture_places
-        if reply == QMessageBox.Yes and textures is not None:
+
+        if reply == QMessageBox.Yes and any(
+            texture is not None for texture in textures
+        ):
             self.textures = game_window.save_textures()
-            print(self.textures)
             self.show_save_file_dialog()
+        else:
+            QMessageBox.warning(
+                self,
+                "Ошибка",
+                "Созданная вами карта пуста!",
+                QMessageBox.Ok,
+            )
 
     def show_save_file_dialog(self):
+        path = Path("levels")
+        if not path.exists():
+            path.mkdir(parents=True)
+
         options = QFileDialog.Options()
 
-        defaultFileName = "Untitled_map.txt"
+        defaultFileName = "Untitled_map.json"
         fileName, _ = QFileDialog.getSaveFileName(
             self,
             "Сохранить файл как...",
             defaultFileName,
-            "All Files (*);;Text Files (*.txt)",
+            "All Files (*);;Text Files (*.json)",
             options=options,
         )
         if fileName:
-            print(f"Выбранный файл для сохранения: {fileName}")
-            # Здесь код для сохранения данных в выбранный файл
+            with Path(fileName).open("w", encoding="utf-8") as file:
+                json.dump(self.textures, file, ensure_ascii=False, indent=4)
+            QMessageBox.information(self, "Готово", "Карта успешно сохранена")
+        else:
+            QMessageBox.warning(self, "Ошибка", "Сохранение карты отменено")
 
 
 def except_hook(cls, exception, traceback):
