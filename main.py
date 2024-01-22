@@ -20,8 +20,6 @@ from map_editor_window import MapEditorWindow
 
 class MainWindow(QMainWindow):
     def __init__(self):
-        self.app = app
-
         self._images = {
             "main_window_background": QPixmap(
                 "materials/backgrounds/main_background.png"
@@ -160,7 +158,7 @@ class MainWindow(QMainWindow):
         self.hide()
         self.choose_map_to_open()
 
-        game_windwow = GameWindow()
+        game_windwow = GameWindow(self.screen_size)
         game_windwow.main()
 
         self.show()
@@ -192,7 +190,7 @@ class MainWindow(QMainWindow):
         ):
             self.textures = game_window.save_textures()
             self.show_save_file_dialog()
-        else:
+        elif reply != QMessageBox.No:
             QMessageBox.warning(
                 self,
                 "Ошибка",

@@ -29,12 +29,31 @@ class Level_01(Level):
         super().__init__(player, "materials/backgrounds/world_background.png")
 
         platform_image = pygame.image.load(
-            "materials/textures/0.png"
+            "materials/textures/colored_ground_texture.png"
         ).convert_alpha()
 
+        self.block_width = self.display_size[0] * 0.70 * 0.05
+        self.block_height = self.display_size[1] * 0.75 * 0.077
+
         level = [
-            [50, 50, 350, 400],
-            [50, 50, 300, 400],
+            [
+                self.block_width * 1,
+                self.block_height * 1,
+                self.display_size[0] * 0.15,
+                self.display_size[1] * 0.75,
+            ],
+            [
+                self.block_width * 2,
+                self.block_height * 1,
+                self.display_size[0] * 0.15,
+                self.display_size[1] * 0.75,
+            ],
+            [
+                self.block_width * 3,
+                self.block_height * 1,
+                self.display_size[0] * 0.15,
+                self.display_size[1] * 0.75,
+            ],
         ]
 
         for platform in level:

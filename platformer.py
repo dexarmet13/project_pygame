@@ -7,9 +7,9 @@ from player import Player
 
 
 class GameWindow:
-    def __init__(self):
+    def __init__(self, max_screen_size):
         pygame.init()
-        self.screen = self.apply_settings()
+        self.screen = self.apply_settings(max_screen_size)
         self.display_size = pygame.display.get_surface().get_size()
 
         self.width = self.display_size[0]
@@ -17,12 +17,8 @@ class GameWindow:
 
         self.player = Player()
 
-    def apply_settings(self):
+    def apply_settings(self, max_screen_size):
         json_path = Path(__file__).parent / "user_data" / "settings.json"
-
-        info = pygame.display.Info()
-        screen_width = info.current_w
-        screen_height = info.current_h
 
         with json_path.open("r", encoding="utf-8") as json_file:
             settings = json.load(json_file)
@@ -30,6 +26,7 @@ class GameWindow:
             screen = None
             fullscreen = False
             # vsync = False
+
             for key, value in settings.items():
                 if key == "Громкость звука":
                     pygame.mixer.music.set_volume(value / 100)
@@ -44,17 +41,20 @@ class GameWindow:
                         fullscreen = True
                 elif key == "Ограничение по FPS":
                     self.fps = value
-                elif key == "Вертикальная синхронизация":
-                    vsync = True
+                # elif key == "Вертикальная синхронизация":
+                #     vsync = True
 
         if not fullscreen:
             if (
-                resolution[0] >= screen_width
-                and resolution[1] >= screen_height
+                resolution[0] >= max_screen_size.width()
+                and resolution[1] >= max_screen_size.height()
             ):
                 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
             else:
-                screen = pygame.display.set_mode(resolution)
+                screen = (
+                    pygame.display.set_mode(max_screen_size.width()),
+                    max_screen_size.height(),
+                )
         else:
             screen = pygame.display.set_mode(
                 (resolution[0], resolution[1]), pygame.FULLSCREEN
