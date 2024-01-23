@@ -2,7 +2,7 @@ import pygame
 import sys
 from pathlib import Path
 import json
-from territory import Level_01
+from territory import Level_01, Trap
 from player import Player
 
 
@@ -139,7 +139,10 @@ class GameWindow:
                 current_level.shift_world(diff)
 
             active_sprite_list.update()
-            current_level.update()
+
+            for platform in current_level.platform_list:
+                if isinstance(platform, Trap):
+                    platform.update()
 
             current_level.draw(self.screen)
             active_sprite_list.draw(self.screen)
