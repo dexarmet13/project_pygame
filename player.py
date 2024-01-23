@@ -165,6 +165,6 @@ class Player(pygame.sprite.Sprite):
     def stop(self):
         self.change_x = 0
         self.image = self.right_image
-
+        
     def teleport_go_start(self):
         self.rect.x = 0

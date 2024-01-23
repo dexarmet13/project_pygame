@@ -58,8 +58,8 @@ class GameWindow:
 
         if not fullscreen:
             if (
-                    resolution[0] >= max_screen_size.width()
-                    and resolution[1] >= max_screen_size.height()
+                resolution[0] >= max_screen_size.width()
+                and resolution[1] >= max_screen_size.height()
             ):
                 screen = pygame.display.set_mode(
                     (max_screen_size.width(), max_screen_size.height())
