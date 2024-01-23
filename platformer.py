@@ -164,6 +164,8 @@ class GameWindow:
                 text = font.render("Поздравляем! Вы победили!", True, (0, 0, 0))
                 text_rect = text.get_rect(center=(400, 300))
                 self.screen.blit(text, text_rect)
+                pygame.time.wait(500)
+                running = False
 
             current_level.draw(self.screen)
             active_sprite_list.draw(self.screen)
