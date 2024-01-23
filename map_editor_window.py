@@ -126,7 +126,7 @@ class MapEditorUI:
                     + self.padding * num_pairs
                     + self.big_padding * j
                 )
-                left = self._screen_size[0] * 0.960 - width
+                left = self._screen_size[0] * 0.960 - width * 2
                 rect = pygame.Rect(left, top, width, height)
                 rects[j].append(rect)
 
@@ -356,7 +356,7 @@ class MapEditorWindow:
                 "materials/textures/lava_ground_texture.png",
                 "materials/textures/snow_ground_texture.png",
             ],
-            [],
+            ["materials/details/enemy.png"],
         ]
 
         self.right_images = [

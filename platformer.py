@@ -74,7 +74,7 @@ class GameWindow:
         active_sprite_list = pygame.sprite.Group()
         self.player.level = current_level
 
-        self.player.rect.x = 1000
+        self.player.rect.x = 0
         self.player.rect.y = self.height - self.player.rect.height
         active_sprite_list.add(self.player)
 
