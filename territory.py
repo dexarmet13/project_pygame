@@ -78,3 +78,8 @@ class Platform(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+
+
+class Trap(Platform):
+    def __init__(self, width, height, x, y, image):
+        super().__init__(width, height, x, y, image)

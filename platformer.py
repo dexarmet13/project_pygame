@@ -97,16 +97,21 @@ class GameWindow:
                         flag_sountrack = not flag_sountrack
                         if flag_sountrack:
                             pygame.mixer.music.pause()
+
                     if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                         self.player.go_left()
+                        # self.player.left_anim.play()
+
                     if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                         self.player.go_right()
+
                     if (
                         event.key == pygame.K_UP
                         or event.key == pygame.K_SPACE
                         or event.key == pygame.K_w
                     ):
                         self.player.jump()
+
                     if event.key == pygame.K_ESCAPE:
                         running = False
 
