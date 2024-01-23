@@ -48,17 +48,17 @@ class MainWindow(QMainWindow):
         self.welcome_window.settings_button.clicked.connect(self.settings)
         self.set_button_stylesheet(
             self.welcome_window.settings_button,
-            "materials/button_bg/buttons_texture.png",
+            "materials/button_bg/button_texture.png",
         )
         self.welcome_window.play_button.clicked.connect(self.play)
         self.set_button_stylesheet(
             self.welcome_window.play_button,
-            "materials/button_bg/buttons_texture.png",
+            "materials/button_bg/play_button_texture.png",
         )
         self.welcome_window.map_editor.clicked.connect(self.edit_map)
         self.set_button_stylesheet(
             self.welcome_window.map_editor,
-            "materials/button_bg/buttons_texture.png",
+            "materials/button_bg/button_texture.png",
         )
 
         self.main_stacked_widget.addWidget(self.welcome_window)

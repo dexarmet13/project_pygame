@@ -1,16 +1,18 @@
 import pygame
+import time
 from const import *
-from territory import *
-
+from territory import Trap
 import pyganim
 
 
 class Player(pygame.sprite.Sprite):
-    RIGHT_IMAGE_PATH = "materials/characters/128_lis.png"
-    LEFT_IMAGE_PATH = "materials/characters/128_lis_left.png"
+    RIGHT_IMAGE_PATH = "materials/characters/fox/128_lis.png"
+    LEFT_IMAGE_PATH = "materials/characters/fox/128_lis_reverse.png"
 
-    def __init__(self):
+    def __init__(self, screen):
         super().__init__()
+
+        self.screen = screen
 
         self.right_image = pygame.image.load(
             Player.RIGHT_IMAGE_PATH
@@ -23,30 +25,35 @@ class Player(pygame.sprite.Sprite):
         self.image = self.right_image
 
         self.left_anim = pyganim.PygAnimation([
-            (f"materials/characters/animations/left/left{i}.png", 0.1)
+            (f"materials/characters/fox/animations/left walk/left{i}.png", 0.1)
             for i in range(1, 14)
         ])
         self.right_anim = pyganim.PygAnimation([
-            (f"materials/characters/animations/right/right{i}.png", 0.1)
+            (
+                f"materials/characters/fox/animations/right walk/right{i}.png",
+                0.1,
+            )
             for i in range(1, 14)
         ])
         self.left_jump_anim = pyganim.PygAnimation([
-            (f"materials/characters/animations/left jump/{i}{i}.png", 0.1)
+            (f"materials/characters/fox/animations/left jump/{i}{i}.png", 0.1)
             for i in range(1, 9)
         ])
 
         self.right_jump_anim = pyganim.PygAnimation([
-            (f"materials/characters/animations/right jump/{i}.png", 0.1)
+            (f"materials/characters/fox/animations/right jump/{i}.png", 0.1)
             for i in range(1, 9)
         ])
 
-        self.stayed_right_anim = pyganim.PygAnimation(
-            [(Player.RIGHT_IMAGE_PATH, 0.1)]
-        )
+        self.stayed_right_anim = pyganim.PygAnimation([
+            (f"materials/characters/fox/animations/right idle/{i}.png", 0.1)
+            for i in range(1, 7)
+        ])
 
-        self.stayed_left_anim = pyganim.PygAnimation(
-            [(Player.LEFT_IMAGE_PATH, 0.1)]
-        )
+        self.stayed_left_anim = pyganim.PygAnimation([
+            (f"materials/characters/fox/animations/left idle/{i}.png", 0.1)
+            for i in range(1, 7)
+        ])
 
         self.change_x = 0
         self.change_y = 0
@@ -108,31 +115,29 @@ class Player(pygame.sprite.Sprite):
         block_hit_list = pygame.sprite.spritecollide(
             self, self.level.platform_list, False
         )
+
         for block in block_hit_list:
-            if self.change_x > 0:
+            if isinstance(block, Trap):
+                self.teleport_player()
+            elif self.change_x > 0:
                 self.rect.right = block.rect.left
             elif self.change_x < 0:
                 self.rect.left = block.rect.right
-
-        for platform in block_hit_list:
-            if isinstance(platform, Trap):
-                self.teleport_go_start()
 
     def _handle_vertical_collisions(self):
         block_hit_list = pygame.sprite.spritecollide(
             self, self.level.platform_list, False
         )
+
         for block in block_hit_list:
-            if self.change_y > 0:
+            if isinstance(block, Trap):
+                self.teleport_player()
+            elif self.change_y > 0:
                 self.rect.bottom = block.rect.top
             elif self.change_y < 0:
                 self.rect.top = block.rect.bottom
 
             self.change_y = 0
-
-        for platform in block_hit_list:
-            if isinstance(platform, Trap):
-                self.teleport_go_start()
 
     def jump(self):
         if self._prepare_for_jump():
@@ -165,6 +170,29 @@ class Player(pygame.sprite.Sprite):
     def stop(self):
         self.change_x = 0
         self.image = self.right_image
-        
-    def teleport_go_start(self):
+
+    def fade_out(self, duration):
+        fade_surface = pygame.Surface(self.screen.get_size())
+        fade_surface.fill((0, 0, 0))
+        for alpha in range(0, 255, 10):
+            fade_surface.set_alpha(alpha)
+            self.screen.blit(fade_surface, (0, 0))
+            pygame.display.update()
+            pygame.time.delay(duration)
+
+    def fade_in(self, duration):
+        fade_surface = pygame.Surface(self.screen.get_size())
+        fade_surface.fill((0, 0, 0))
+        for alpha in range(255, -1, -10):
+            fade_surface.set_alpha(alpha)
+            self.screen.blit(fade_surface, (0, 0))
+            pygame.display.update()
+            pygame.time.delay(duration)
+
+    def teleport_player(self):
+        self.fade_out(25)
+
         self.rect.x = 0
+
+        time.sleep(0.5)
+        self.fade_in(25)

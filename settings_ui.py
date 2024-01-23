@@ -63,9 +63,9 @@ class SettingsUI(QWidget):
 
         self.game_resolution_combo_box = QComboBox()
         self.set_combo_box_stylesheet(self.game_resolution_combo_box)
-        self.game_resolution_combo_box.addItems([
-            "2560*1440", "1920*1080", "1280*720"
-        ])
+        self.game_resolution_combo_box.addItems(
+            ["2560*1440", "1920*1080", "1280*720"]
+        )
         self.main_layout.addWidget(self.game_resolution_combo_box, 2, 1, 1, 2)
 
         label = QLabel("Качество текстур")

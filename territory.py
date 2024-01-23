@@ -1,8 +1,6 @@
 import pygame
 from pathlib import Path
-from player import Player
 import json
-import numpy as np
 
 
 class Level:
@@ -70,7 +68,7 @@ class Level_01(Level):
                             + ((self.display_size[0] - self.block_width) * i),
                             position[1],
                             image_cache[image_path],
-                            Player(),
+                            self.player,
                         )
                         self.platform_list.add(platform)
                 else:
