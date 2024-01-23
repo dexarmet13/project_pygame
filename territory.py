@@ -68,7 +68,7 @@ class Level_01(Level):
                     self.platform_list.add(platform)
 
     def grid_to_pixel(self, x, y):
-        return ((x + 1) * self.block_width, (y + 1) * self.block_height)
+        return ((x + 2) * self.block_width, (y + 1) * self.block_height)
 
 
 class Platform(pygame.sprite.Sprite):
