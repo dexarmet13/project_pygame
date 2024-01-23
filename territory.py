@@ -110,4 +110,4 @@ class Trap(pygame.sprite.Sprite):
 
     def update(self):
         if pygame.sprite.collide_rect(self, self.player):
-            self.player.rect.x = 0
+            self.player.teleport_go_start()

@@ -1,5 +1,6 @@
 import pygame
 from const import *
+from territory import *
 
 import pyganim
 
@@ -113,6 +114,10 @@ class Player(pygame.sprite.Sprite):
             elif self.change_x < 0:
                 self.rect.left = block.rect.right
 
+        for platform in block_hit_list:
+            if isinstance(platform, Trap):
+                self.teleport_go_start()
+
     def _handle_vertical_collisions(self):
         block_hit_list = pygame.sprite.spritecollide(
             self, self.level.platform_list, False
@@ -124,6 +129,10 @@ class Player(pygame.sprite.Sprite):
                 self.rect.top = block.rect.bottom
 
             self.change_y = 0
+
+        for platform in block_hit_list:
+            if isinstance(platform, Trap):
+                self.teleport_go_start()
 
     def jump(self):
         if self._prepare_for_jump():
@@ -156,3 +165,6 @@ class Player(pygame.sprite.Sprite):
     def stop(self):
         self.change_x = 0
         self.image = self.right_image
+        
+    def teleport_go_start(self):
+        self.rect.x = 0

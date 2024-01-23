@@ -6,6 +6,15 @@ from territory import Level_01, Trap
 from player import Player
 
 
+class Target_finish(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface((20, 20))
+        self.image.fill((255, 0, 255))
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+
+
 class GameWindow:
     def __init__(self, max_screen_size, map_path):
         pygame.init()
@@ -79,7 +88,9 @@ class GameWindow:
         active_sprite_list.add(self.player)
 
         running = True
+        victory = False
         flag_sountrack = False
+        target = Target_finish(700, 100)
 
         clock = pygame.time.Clock()
         pygame.mixer.music.load("sounds/ost_soundtrack.mp3")
@@ -106,9 +117,9 @@ class GameWindow:
                         self.player.go_right()
 
                     if (
-                        event.key == pygame.K_UP
-                        or event.key == pygame.K_SPACE
-                        or event.key == pygame.K_w
+                            event.key == pygame.K_UP
+                            or event.key == pygame.K_SPACE
+                            or event.key == pygame.K_w
                     ):
                         self.player.jump()
 
@@ -117,11 +128,11 @@ class GameWindow:
 
                 elif event.type == pygame.KEYUP:
                     if (
-                        event.key == pygame.K_LEFT or event.key == pygame.K_a
+                            event.key == pygame.K_LEFT or event.key == pygame.K_a
                     ) and self.player.change_x < 0:
                         self.player.stop()
                     if (
-                        event.key == pygame.K_RIGHT or event.key == pygame.K_d
+                            event.key == pygame.K_RIGHT or event.key == pygame.K_d
                     ) and self.player.change_x > 0:
                         self.player.stop()
 
@@ -140,9 +151,21 @@ class GameWindow:
 
             active_sprite_list.update()
 
-            for platform in current_level.platform_list:
+            platform_hit_list = pygame.sprite.spritecollide(self.player, active_sprite_list, False)
+            for platform in platform_hit_list:
                 if isinstance(platform, Trap):
-                    platform.update()
+                    self.player.teleport_go_start()
+
+            if pygame.sprite.collide_rect(self.player, target):
+                victory = True
+
+            if victory:
+                font = pygame.font.Font(None, 36)
+                text = font.render("Поздравляем! Вы победили!", True, (0, 0, 0))
+                text_rect = text.get_rect(center=(400, 300))
+                self.screen.blit(text, text_rect)
+                pygame.time.wait(500)
+                running = False
 
             current_level.draw(self.screen)
             active_sprite_list.draw(self.screen)
