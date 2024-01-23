@@ -2,14 +2,17 @@ import pygame
 import sys
 from pathlib import Path
 import json
-from territory import Level_01
+from territory import Level_01, Trap
 from player import Player
 
 
 class GameWindow:
-    def __init__(self):
+    def __init__(self, max_screen_size, map_path):
         pygame.init()
-        self.screen = self.apply_settings()
+
+        self.path_to_map = map_path
+
+        self.screen = self.apply_settings(max_screen_size)
         self.display_size = pygame.display.get_surface().get_size()
 
         self.width = self.display_size[0]
@@ -17,12 +20,8 @@ class GameWindow:
 
         self.player = Player()
 
-    def apply_settings(self):
+    def apply_settings(self, max_screen_size):
         json_path = Path(__file__).parent / "user_data" / "settings.json"
-
-        info = pygame.display.Info()
-        screen_width = info.current_w
-        screen_height = info.current_h
 
         with json_path.open("r", encoding="utf-8") as json_file:
             settings = json.load(json_file)
@@ -30,6 +29,7 @@ class GameWindow:
             screen = None
             fullscreen = False
             # vsync = False
+
             for key, value in settings.items():
                 if key == "Громкость звука":
                     pygame.mixer.music.set_volume(value / 100)
@@ -44,17 +44,22 @@ class GameWindow:
                         fullscreen = True
                 elif key == "Ограничение по FPS":
                     self.fps = value
-                elif key == "Вертикальная синхронизация":
-                    vsync = True
+                # elif key == "Вертикальная синхронизация":
+                #     vsync = True
 
         if not fullscreen:
             if (
-                resolution[0] >= screen_width
-                and resolution[1] >= screen_height
+                resolution[0] >= max_screen_size.width()
+                and resolution[1] >= max_screen_size.height()
             ):
-                screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+                screen = pygame.display.set_mode(
+                    (max_screen_size.width(), max_screen_size.height())
+                )
             else:
-                screen = pygame.display.set_mode(resolution)
+                screen = pygame.display.set_mode(
+                    (resolution[0], resolution[1])
+                )
+
         else:
             screen = pygame.display.set_mode(
                 (resolution[0], resolution[1]), pygame.FULLSCREEN
@@ -64,15 +69,12 @@ class GameWindow:
     def main(self):
         pygame.display.set_caption("Платформер")
 
-        level_list = []
-        level_list.append(Level_01(self.player))
-        current_level_no = 0
-        current_level = level_list[current_level_no]
+        current_level = Level_01(self.player, self.path_to_map)
 
         active_sprite_list = pygame.sprite.Group()
         self.player.level = current_level
 
-        self.player.rect.x = 1000
+        self.player.rect.x = 0
         self.player.rect.y = self.height - self.player.rect.height
         active_sprite_list.add(self.player)
 
@@ -95,16 +97,21 @@ class GameWindow:
                         flag_sountrack = not flag_sountrack
                         if flag_sountrack:
                             pygame.mixer.music.pause()
+
                     if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                         self.player.go_left()
+                        # self.player.left_anim.play()
+
                     if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                         self.player.go_right()
+
                     if (
                         event.key == pygame.K_UP
                         or event.key == pygame.K_SPACE
                         or event.key == pygame.K_w
                     ):
                         self.player.jump()
+
                     if event.key == pygame.K_ESCAPE:
                         running = False
 
@@ -132,7 +139,11 @@ class GameWindow:
                 current_level.shift_world(diff)
 
             active_sprite_list.update()
-            current_level.update()
+
+            platform_hit_list = pygame.sprite.spritecollide(self.player, active_sprite_list, False)
+            for platform in platform_hit_list:
+                if isinstance(platform, Trap):
+                    self.player.teleport_go_start()
 
             current_level.draw(self.screen)
             active_sprite_list.draw(self.screen)

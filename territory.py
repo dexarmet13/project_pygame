@@ -1,4 +1,8 @@
 import pygame
+from pathlib import Path
+from player import Player
+import json
+import numpy as np
 
 
 class Level:
@@ -25,21 +29,65 @@ class Level:
 
 
 class Level_01(Level):
-    def __init__(self, player):
+    def __init__(self, player, map_path):
         super().__init__(player, "materials/backgrounds/world_background.png")
 
-        platform_image = pygame.image.load(
-            "materials/textures/0.png"
-        ).convert_alpha()
+        self.map_path = map_path
 
-        level = [
-            [50, 50, 350, 400],
-            [50, 50, 300, 400],
-        ]
+        self.block_width = self.display_size[0] / 21
+        self.block_height = self.display_size[1] / 14
 
-        for platform in level:
-            block = Platform(*platform, platform_image)
-            self.platform_list.add(block)
+        self.load_map()
+
+    def load_textures(self):
+        with Path(self.map_path).open("r", encoding="utf-8") as json_file:
+            level = json.load(json_file)
+        return level
+
+    def load_map(self):
+        textures = self.load_textures()
+
+        image_cache = {}
+
+        for i, dc in enumerate(textures):
+            for image_path, value in dc.items():
+                if image_path not in image_cache:
+                    image_cache[image_path] = pygame.image.load(
+                        image_path
+                    ).convert_alpha()
+
+                if image_path in [
+                    "materials/details/lava.png",
+                    "materials/details/shipi.png",
+                    "materials/details/stones.png",
+                ]:
+                    for block in value:
+                        position = self.grid_to_pixel(block[0], block[1])
+                        platform = Trap(
+                            self.block_width,
+                            self.block_height,
+                            position[0]
+                            + ((self.display_size[0] - self.block_width) * i),
+                            position[1],
+                            image_cache[image_path],
+                            Player(),
+                        )
+                        self.platform_list.add(platform)
+                else:
+                    for block in value:
+                        position = self.grid_to_pixel(block[0], block[1])
+                        platform = Platform(
+                            self.block_width,
+                            self.block_height,
+                            position[0]
+                            + ((self.display_size[0] - self.block_width) * i),
+                            position[1],
+                            image_cache[image_path],
+                        )
+                        self.platform_list.add(platform)
+
+    def grid_to_pixel(self, x, y):
+        return ((x + 2) * self.block_width, (y + 1) * self.block_height)
 
 
 class Platform(pygame.sprite.Sprite):
@@ -49,3 +97,17 @@ class Platform(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+
+
+class Trap(pygame.sprite.Sprite):
+    def __init__(self, width, height, x, y, image, player):
+        super().__init__()
+        self.image = pygame.transform.scale(image, (width, height))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.player = player
+
+    def update(self):
+        if pygame.sprite.collide_rect(self, self.player):
+            self.player.teleport_go_start()

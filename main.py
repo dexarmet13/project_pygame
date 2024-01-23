@@ -1,11 +1,14 @@
 import sys
-from PyQt5.QtGui import QPixmap, QBrush
+import json
+from pathlib import Path
+from PyQt5.QtGui import QPixmap, QBrush, QPalette
 from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
     QStackedWidget,
     QDesktopWidget,
     QMessageBox,
+    QFileDialog,
 )
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QSize, Qt
@@ -65,6 +68,8 @@ class MainWindow(QMainWindow):
 
         self.main_stacked_widget.addWidget(self.settings_window)
 
+        self.textures = None
+
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.showDialog()
@@ -74,7 +79,7 @@ class MainWindow(QMainWindow):
     def showDialog(self):
         msgBox = QMessageBox()
         msgBox.setIcon(QMessageBox.Information)
-        msgBox.setText("Закрыть приложение?")
+        msgBox.setText("Закрыть игру?")
         msgBox.setWindowTitle("Подтверждение выхода")
         msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
 
@@ -102,12 +107,16 @@ class MainWindow(QMainWindow):
                 pixmap = pixmap.scaled(
                     self.screen_size.width(),
                     self.screen_size.height(),
-                    QtCore.Qt.KeepAspectRatio,
+                    Qt.KeepAspectRatio,
                 )
 
+            self.setAutoFillBackground(True)
             palette = self.palette()
-            palette.setBrush(self.backgroundRole(), QBrush(pixmap))
+            palette.setBrush(QPalette.Background, QBrush(pixmap))
             self.setPalette(palette)
+            self.update()
+            return True
+
         return False
 
     def set_button_stylesheet(self, button, image_path):
@@ -151,17 +160,94 @@ class MainWindow(QMainWindow):
 
     def play(self):
         self.hide()
-        game_windwow = GameWindow()
-        game_windwow.main()
+        file_name = self.choose_map_to_open()
+        if file_name:
+            game_windwow = GameWindow(self.screen_size, file_name)
+            game_windwow.main()
+
         self.show()
 
     def edit_map(self):
         self.hide()
-        game_windwow = MapEditorWindow(
-            (self.screen_size.width(), self.screen_size.height()),
+
+        game_window = MapEditorWindow(
+            (self.screen_size.width(), self.screen_size.height())
         )
-        game_windwow.main()
+        game_window.main()
+
         self.show()
+        self.show_popup(game_window)
+
+    def show_popup(self, game_window):
+        reply = QMessageBox.question(
+            self,
+            "Сообщение",
+            "Сохранить карту?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        game_window.get_texture_place(game_window.current_selected_slide)
+        textures = game_window.texture_places
+
+        if reply == QMessageBox.Yes and any(
+            texture is not None for texture in textures
+        ):
+            self.textures = game_window.save_textures()
+            self.show_save_file_dialog()
+
+        elif reply != QMessageBox.No:
+            QMessageBox.warning(
+                self,
+                "Ошибка",
+                "Созданная вами карта пуста!",
+                QMessageBox.Ok,
+            )
+
+    def show_save_file_dialog(self):
+        path = Path("user_levels")
+        if not path.exists():
+            path.mkdir(parents=True)
+
+        defaultFileName = "Untitled_map.json"
+        defaultDir = "./user_levels"
+        options = QFileDialog.Options()
+        # options |= QFileDialog.DontUseNativeDialog
+
+        file_name, _ = QFileDialog.getSaveFileName(
+            self,
+            "Сохранить файл как...",
+            defaultDir + "/" + defaultFileName,
+            "All Files (*);;Text Files (*.json)",
+            options=options,
+        )
+
+        if file_name:
+            with Path(file_name).open("w", encoding="utf-8") as file:
+                json.dump(self.textures, file, ensure_ascii=False, indent=4)
+            QMessageBox.information(self, "Готово", "Карта успешно сохранена")
+        else:
+            QMessageBox.warning(self, "Ошибка", "Не удалось сохранить карту")
+
+    def choose_map_to_open(self):
+        path = Path("user_levels")
+        if not path.exists():
+            QMessageBox.warning(
+                self, "Ошибка", "Вы не создали еще ни одной карты"
+            )
+
+        options = QFileDialog.Options()
+        # options |= QFileDialog.DontUseNativeDialog
+        file_name, _ = QFileDialog.getOpenFileName(
+            self,
+            "Выберите файл",
+            "./user_levels",
+            "All Files (*);;Text Files (*.txt);;JSON Files (*.json)",
+            options=options,
+        )
+        if file_name:
+            return file_name
+        QMessageBox.warning(self, "Ошибка", "Не удалось открыть карту")
+        return False
 
 
 def except_hook(cls, exception, traceback):
