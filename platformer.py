@@ -2,8 +2,8 @@ import pygame
 import sys
 from pathlib import Path
 import json
-from territory import Level_01, Trap
 from player import Player
+from territory import Level_01
 
 
 class Target_finish(pygame.sprite.Sprite):
@@ -27,7 +27,7 @@ class GameWindow:
         self.width = self.display_size[0]
         self.height = self.display_size[1]
 
-        self.player = Player()
+        self.player = Player(self.screen)
 
     def apply_settings(self, max_screen_size):
         json_path = Path(__file__).parent / "user_data" / "settings.json"
@@ -58,8 +58,8 @@ class GameWindow:
 
         if not fullscreen:
             if (
-                    resolution[0] >= max_screen_size.width()
-                    and resolution[1] >= max_screen_size.height()
+                resolution[0] >= max_screen_size.width()
+                and resolution[1] >= max_screen_size.height()
             ):
                 screen = pygame.display.set_mode(
                     (max_screen_size.width(), max_screen_size.height())
@@ -111,15 +111,14 @@ class GameWindow:
 
                     if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                         self.player.go_left()
-                        # self.player.left_anim.play()
 
                     if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                         self.player.go_right()
 
                     if (
-                            event.key == pygame.K_UP
-                            or event.key == pygame.K_SPACE
-                            or event.key == pygame.K_w
+                        event.key == pygame.K_UP
+                        or event.key == pygame.K_SPACE
+                        or event.key == pygame.K_w
                     ):
                         self.player.jump()
 
@@ -128,11 +127,11 @@ class GameWindow:
 
                 elif event.type == pygame.KEYUP:
                     if (
-                            event.key == pygame.K_LEFT or event.key == pygame.K_a
+                        event.key == pygame.K_LEFT or event.key == pygame.K_a
                     ) and self.player.change_x < 0:
                         self.player.stop()
                     if (
-                            event.key == pygame.K_RIGHT or event.key == pygame.K_d
+                        event.key == pygame.K_RIGHT or event.key == pygame.K_d
                     ) and self.player.change_x > 0:
                         self.player.stop()
 
@@ -151,17 +150,18 @@ class GameWindow:
 
             active_sprite_list.update()
 
-            platform_hit_list = pygame.sprite.spritecollide(self.player, active_sprite_list, False)
-            for platform in platform_hit_list:
-                if isinstance(platform, Trap):
-                    self.player.teleport_go_start()
+            platform_hit_list = pygame.sprite.spritecollide(
+                self.player, self.player.level.platform_list, False
+            )
 
             if pygame.sprite.collide_rect(self.player, target):
                 victory = True
 
             if victory:
                 font = pygame.font.Font(None, 36)
-                text = font.render("Поздравляем! Вы победили!", True, (0, 0, 0))
+                text = font.render(
+                    "Поздравляем! Вы победили!", True, (0, 0, 0)
+                )
                 text_rect = text.get_rect(center=(400, 300))
                 self.screen.blit(text, text_rect)
                 pygame.time.wait(500)

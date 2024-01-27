@@ -1,7 +1,5 @@
 import pygame
 import numpy as np
-import sys
-from PyQt5.QtWidgets import QMessageBox
 
 
 class ObjectTexture:
@@ -316,7 +314,7 @@ class MapEditorWindow:
 
         self.bg = pygame.transform.scale(
             pygame.image.load(
-                "materials/backgrounds/map_editor_background.png"
+                "materials/backgrounds/bg_redactor.png"
             ).convert_alpha(),
             (
                 self._screen_size[0] * 0.70,
@@ -325,7 +323,7 @@ class MapEditorWindow:
         )
 
         self.slide_image = pygame.image.load(
-            "materials/button_bg/slide_button.png"
+            "materials/button_bg/c.jpg"
         ).convert_alpha()
 
         self.selected_texture = None
@@ -349,14 +347,14 @@ class MapEditorWindow:
     def load_right_images(self):
         texture_paths = [
             [
-                "materials/textures/green_ground_texture.png",
-                "materials/textures/colored_ground_texture.png",
-                "materials/textures/dirt_ground_texture.png",
-                "materials/textures/rock_ground_texture.png",
-                "materials/textures/lava_ground_texture.png",
-                "materials/textures/snow_ground_texture.png",
+                "materials/textures/3.png",
+                "materials/textures/6.png",
+                "materials/textures/5.png",
+                "materials/textures/1.png",
+                "materials/textures/2.png",
+                "materials/textures/4.png",
             ],
-            ["materials/details/enemy.png"],
+            ["materials/characters/enemy/1.png"],
         ]
 
         self.right_images = [
@@ -373,7 +371,6 @@ class MapEditorWindow:
         texture_paths = [
             [
                 "materials/details/bush.png",
-                "materials/details/basket.png",
                 "materials/details/firefly.png",
                 "materials/details/flower.png",
                 "materials/details/grass.png",
